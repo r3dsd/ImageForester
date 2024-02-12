@@ -22,4 +22,7 @@ def get_defalut_save_path() -> str:
     return os.path.join(get_program_start_path(), "ImageForestResult")
 
 def check_path_exists(path: str) -> bool:
+    """
+    경로가 존재하는지 확인하는 함수
+    """
     return os.path.exists(path)
