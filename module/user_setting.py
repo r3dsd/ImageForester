@@ -4,6 +4,7 @@ import json
 class UserSetting:
     SETTING = {}
     DEFALUT_SETTING = {
+        'IMAGE_SOURCE_DIR' : '',
         'IMAGE_SAVE_DIR' : r3path.get_defalut_save_path(), # Image save directory
         'SAVE_MODE' : 'Copy', # Save mode (Copy, Move)
         'STEALTH_MODE' : False, # Stealth mode (True, False)

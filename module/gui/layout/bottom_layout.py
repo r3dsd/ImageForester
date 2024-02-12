@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QBoxLayout, QLabel, QPushButton, QHBoxLayout, QSizePolicy, QFileDialog
 
 from ..widgets.settingdialog import SettingDialog
+from ...user_setting import UserSetting
 
 class BottomLayout(QBoxLayout):
     def __init__(self, mainwindow):
@@ -41,4 +42,7 @@ class BottomLayout(QBoxLayout):
         SettingDialog(self.mainwindow)
 
     def _on_path_select_button_clicked(self):
-        pass
+        sourcepath = QFileDialog.getExistingDirectory(self.mainwindow, 'Select Source Path')
+        if sourcepath:
+            self.path_label.setText(f"Selected Path: {sourcepath}")
+            UserSetting.set('IMAGE_SOURCE_DIR', sourcepath)

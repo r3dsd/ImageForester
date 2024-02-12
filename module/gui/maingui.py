@@ -5,13 +5,16 @@ from module.constants import GUI_STYLE_SHEET, PROGRAM_NAME, PROGRAM_VERSION
 from ..user_setting import UserSetting
 from . import layout as MyLayout
 from ..imagetagger import imagetagger
+from .guisignalmanager import GUISignalManager
 
 class MainGui:
     def __init__(self):
         App = QApplication(sys.argv)
         App.setStyle('Fusion')
         UserSetting.load()
+        a = GUISignalManager()
         self._initUI()
+        print(f"{PROGRAM_NAME} {PROGRAM_VERSION} started.")
         sys.exit(App.exec_())
 
     def _initUI(self):

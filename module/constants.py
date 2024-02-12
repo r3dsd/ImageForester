@@ -79,6 +79,7 @@ GUI_STYLE_SHEET = {
                 border-radius: 5px;
                 background-color: #444;
                 border: 1px solid #F11;
+                padding: 5px;
             }
             QPushButton {
                 border-radius: 5px;
