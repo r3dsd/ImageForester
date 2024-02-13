@@ -3,15 +3,14 @@ from PyQt5.QtCore import Qt
 
 from ...historymanager.r3historymanager import R3HistoryManager
 from ..guisignalmanager import GUISignalManager
+from ...data.imagefiledata import ImageFileData
 
 class SearchList(QWidget):
     def __init__(self):
         super().__init__()
 
-        try:
-            GUISignalManager().list_count_changed.connect(self._update_count_label)
-        except:
-            print("GUISignalManager().list_count_changed.connect(self._update_count_label) failed")
+        GUISignalManager().list_count_changed.connect(self._update_count_label)
+        GUISignalManager().on_search_complete.connect(self._on_search_complete)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -28,6 +27,9 @@ class SearchList(QWidget):
         self.list.setObjectName("SearchList")
         layout.addWidget(self.list)
 
+        self.list.itemClicked.connect(self._on_user_select)
+        self.list.currentItemChanged.connect(self._on_user_select)
+
     def set(self, target_list):
         self.target = target_list
 
@@ -40,12 +42,16 @@ class SearchList(QWidget):
         if self.list.currentItem() is None:
             self.list.setCurrentRow(0)
 
-    def update_search_list(self, search_list: list[str]):
+    def _on_search_complete(self, search_list: list[ImageFileData]):
         self.clear()
         for item in search_list:
-            self.list.addItem(QListWidgetItem(item))
-
+            tmp = QListWidgetItem()
+            tmp.setText(item.file_path)
+            tmp.setData(Qt.UserRole, item)
+            self.list.addItem(tmp)
         self._update_count_label()
+
+        self.setFocus()
 
     def keyPressEvent(self, event) -> None:
         key = event.key()
@@ -79,3 +85,7 @@ class SearchList(QWidget):
 
     def _update_count_label(self):
         self.search_count_label.setText(f"Search Count: {self.list.count()}")
+
+    def _on_user_select(self):
+        if self.list.currentItem() is not None:
+            GUISignalManager().emit_on_item_selection_updated(self.list.currentItem().data(Qt.UserRole))

@@ -9,7 +9,8 @@ from PIL import Image
 from onnxruntime import InferenceSession
 from typing import Mapping, Tuple, Dict
 from tqdm import tqdm
-from ..config import TAGGER_CONFIG, IMAGE_FORMATS
+from ..config import TAGGER_CONFIG
+from ..constants import IMAGE_FORMATS
 from ..HuggingFaceDownloader import HuggingFaceDownloader as HFDownloader
 import os
 

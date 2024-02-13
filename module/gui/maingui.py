@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
 from module.constants import GUI_STYLE_SHEET, PROGRAM_NAME, PROGRAM_VERSION
 from ..user_setting import UserSetting
 from . import layout as MyLayout
-from ..imagetagger import imagetagger
 from .guisignalmanager import GUISignalManager
 
 class MainGui:
@@ -28,7 +27,7 @@ class MainGui:
         self._mainwindow = QMainWindow()
         self._mainwindow.setWindowTitle(f"{PROGRAM_NAME} {PROGRAM_VERSION}")
         self._mainwindow.setGeometry(100, 100, 1280, 720)
-        self._mainwindow.setStyleSheet(GUI_STYLE_SHEET['EASY']) # for debugging, use 'DARK' or 'LIGHT'
+        self._mainwindow.setStyleSheet(GUI_STYLE_SHEET['DARK']) # for debugging, use 'DARK' or 'LIGHT'
 
     def _init_central_widget(self):
         _central_widget = QWidget()

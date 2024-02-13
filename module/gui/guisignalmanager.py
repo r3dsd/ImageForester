@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QObject, pyqtSignal
+from ..data.imagefiledata import ImageFileData
 
 # Special thanks to https://stackoverflow.com/questions/59459770/receiving-pyqtsignal-from-singleton
 class Singleton(type(QObject), type):
@@ -13,7 +14,9 @@ class Singleton(type(QObject), type):
 
 class GUISignalManager(QObject, metaclass=Singleton):
     list_count_changed = pyqtSignal()
-
+    on_search_complete = pyqtSignal(object)
+    on_load_complete = pyqtSignal()
+    on_item_selection_updated = pyqtSignal(ImageFileData)
     _instance = None
 
     def __new__(cls):
@@ -23,3 +26,12 @@ class GUISignalManager(QObject, metaclass=Singleton):
     
     def emit_list_count_changed(self):
         self.list_count_changed.emit()
+
+    def emit_on_search_completed(self, data):
+        self.on_search_complete.emit(data)
+
+    def emit_on_load_completed(self):
+        self.on_load_complete.emit()
+
+    def emit_on_item_selection_updated(self, data):
+        self.on_item_selection_updated.emit(data)

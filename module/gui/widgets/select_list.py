@@ -25,6 +25,9 @@ class SelectList(QWidget):
         self.list.setObjectName("SelectList")
         layout.addWidget(self.list)
 
+        self.list.itemClicked.connect(self._on_user_select)
+        self.list.currentItemChanged.connect(self._on_user_select)
+
     def set(self, target_list):
         self.target = target_list
 
@@ -79,3 +82,7 @@ class SelectList(QWidget):
 
     def _update_count_label(self):
         self.select_count_label.setText(f"Select Count: {len(self.list)}")
+
+    def _on_user_select(self):
+        if self.list.currentItem() is not None:
+            GUISignalManager().emit_on_item_selection_updated(self.list.currentItem().data(Qt.UserRole))

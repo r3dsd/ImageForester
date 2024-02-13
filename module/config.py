@@ -7,5 +7,3 @@ HF_CONFIG = {
     'HF_REPO_ID' : 'r3dsd/ImageForester',
     'HF_MODEL_DIR' : './module/model'
 }
-
-IMAGE_FORMATS = ('.png')

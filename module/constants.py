@@ -2,6 +2,8 @@ PROGRAM_NAME = 'Image Forester'
 PROGRAM_VERSION = '0.0.1'
 PROGRAM_AUTHOR = 'r3dsd'
 
+IMAGE_FORMATS = ('.png')
+
 GUI_STYLE_SHEET = {
     'DARK': """
             QWidget{
@@ -20,6 +22,7 @@ GUI_STYLE_SHEET = {
             QPushButton {
                 border-radius: 5px;
                 background-color: #555;
+                padding: 5px;
                 min-width: 80px;
             }
             QPushButton:hover {
@@ -32,36 +35,35 @@ GUI_STYLE_SHEET = {
                 background-color: #222;
                 text-decoration: line-through;
             }
+            QCheckBox {
+                spacing: 5px;
+            }
+            QCheckBox::indicator {
+                width:  25px;
+                height: 25px;
+                background-color: #444;
+                border : 1px solid #FFF;
+            }
+            QCheckBox::indicator:unchecked {
+                background-color: #444;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #7F7;
+            }
+            QComboBox:!editable, QComboBox::drop-down:editable {
+                background: #444;
+            }
+            QComboBox QAbstractItemView {
+                border: 3px solid #111;
+                selection-background-color: #888;
+            }
+            QComboBox::item:selected {
+                background: #EEE;
+                color: #111;
+            }
         """,
     'LIGHT': """
-            QWidget{
-                background-color: #FFF;
-                color: #333;
-            }
-            QLineEdit{
-                border-radius: 5px;
-                background-color: #EEE;
-            }
-            QListWidget, QLabel {
-                border-radius: 5px;
-                background-color: #EEE;
-            }
-            QPushButton {
-                border-radius: 5px;
-                padding: 6px;
-                background-color: #DDD;
-                min-width: 80px;
-            }
-            QPushButton:hover {
-                background-color: #CCC;
-            }
-            QPushButton:pressed {
-                background-color: #FFF;
-            }
-            QPushButton:disabled {
-                background-color: #EEE;
-                text-decoration: line-through;
-            }
+            
         """,
     'EASY': """
             QWidget{
@@ -101,7 +103,6 @@ GUI_STYLE_SHEET = {
             QCheckBox {
                 spacing: 5px;
             }
-
             QCheckBox::indicator {
                 width:  30px;
                 height: 30px;

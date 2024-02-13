@@ -1,7 +1,13 @@
-from PyQt5.QtWidgets import QBoxLayout, QListWidget, QLabel
+import os
+from PyQt5.QtWidgets import QBoxLayout, QLabel, QSizePolicy
+from PyQt5.QtCore import Qt
 
 from ..widgets.search_list import SearchList
 from ..widgets.select_list import SelectList
+from ...data.imagefiledata import ImageFileData
+
+from ..guisignalmanager import GUISignalManager
+from PyQt5.QtGui import QPixmap
 
 class MiddleLayout(QBoxLayout):
     def __init__(self, mainwindow):
@@ -11,18 +17,33 @@ class MiddleLayout(QBoxLayout):
 
     def _initUI(self):
         self.searched_list = SearchList()
+        self.searched_list.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self.addWidget(self.searched_list)
 
         self.selected_list = SelectList()
+        self.selected_list.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self.addWidget(self.selected_list)
 
+        # Reference to each other for moving items, and focus
         self.searched_list.set(self.selected_list)
         self.selected_list.set(self.searched_list)
 
         self.image_viewer = QLabel()
         self.image_viewer.setMinimumSize(512, 512)
+        self.image_viewer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.image_viewer.setAlignment(Qt.AlignCenter)
         self.addWidget(self.image_viewer)
 
-        # 테스트용 더미데이터 삽입
-        self.searched_list.update_search_list(["test1", "test2", "test3", "test4", "test5"])
-        self.selected_list.update_select_list(["test11", "test22", "test33", "test44", "test55"])
+        GUISignalManager().on_item_selection_updated.connect(self._on_item_selection_updated)
+
+    def _on_item_selection_updated(self, image_data: ImageFileData):
+        self.set_image_viewer(image_data.file_path)
+
+    def set_image_viewer(self, image_path: str):
+        normpath = os.path.normpath(image_path)
+        pixmap = QPixmap(normpath)
+        scaled_pixmap = pixmap.scaled(self.image_viewer.width(), self.image_viewer.height(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.image_viewer.setPixmap(scaled_pixmap)
+
+    def clear_image_viewer(self):
+        self.image_viewer.clear()
