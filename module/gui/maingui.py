@@ -1,12 +1,14 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
+from PyQt5.QtGui import QIcon
 
 from module.constants import GUI_STYLE_SHEET, PROGRAM_NAME, PROGRAM_VERSION
 from ..user_setting import UserSetting
 from . import layout as MyLayout
 from .guisignalmanager import GUISignalManager
-from .widgets.toolbar import MyToolBar
+from .widgets.menubar import MyMenuBar
 from ..logger import get_logger
+from ..r3util.r3path import get_resource_path
 
 logger = get_logger(__name__)
 
@@ -30,12 +32,12 @@ class MainGui:
     def _init_window(self):
         self._mainwindow = QMainWindow()
         self._mainwindow.setWindowTitle(f"{PROGRAM_NAME} {PROGRAM_VERSION}")
+        self._mainwindow.setWindowIcon(QIcon(get_resource_path('icon.ico')))
         self._mainwindow.setGeometry(100, 100, 1280, 720)
-        self._mainwindow.setStyleSheet(GUI_STYLE_SHEET['DARK']) # for debugging, use 'DARK' or 'LIGHT'
+        self._mainwindow.setStyleSheet(GUI_STYLE_SHEET[UserSetting.get('GUI_STYLE')])
 
-        self.toolbar = MyToolBar(self._mainwindow)
-        self._mainwindow.addToolBar(self.toolbar)
-        self.toolbar.setMovable(False)
+        self.menubar = MyMenuBar(self._mainwindow)
+        self._mainwindow.setMenuBar(self.menubar)
 
     def _init_central_widget(self):
         _central_widget = QWidget()
@@ -50,6 +52,3 @@ class MainGui:
         _central_Layout.addLayout(top_layout)
         _central_Layout.addLayout(middle_layout)
         _central_Layout.addLayout(bottom_layout)
-
-if __name__ == "__main__":
-    MainGui()

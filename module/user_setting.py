@@ -4,6 +4,7 @@ from .logger import get_logger
 
 logger = get_logger(__name__)
 
+# UserSetting
 class UserSetting:
     SETTING = {}
     DEFALUT_SETTING = {
@@ -11,6 +12,7 @@ class UserSetting:
         'SAVE_MODE' : 'Copy', # Save mode (Copy, Move)
         'STEALTH_MODE' : False, # Stealth mode (True, False)
         'DONT_SHOW_LOAD_CONFIRM' : False, # Auto load (True, False)
+        'GUI_STYLE' : 'DARK', # GUI Style ('DARK', 'LIGHT')
     }
     @classmethod
     def load(cls) -> None:
@@ -59,6 +61,8 @@ class UserSetting:
         try:
             if key == 'SAVE_MODE':
                 assert cls.SETTING[key] == 'Copy' or cls.SETTING[key] == 'Move', f'UserSetting : {key} is not in UserSetting'
+            elif key == 'GUI_STYLE':
+                assert cls.SETTING[key] == 'DARK' or cls.SETTING[key] == 'LIGHT' or cls.SETTING[key], f'UserSetting : {key} is not in UserSetting'
             return cls.SETTING[key]
         except:
             logger.error(f"UserSetting : {key} is not in UserSetting")

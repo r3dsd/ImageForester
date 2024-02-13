@@ -62,7 +62,7 @@ class SearchManager:
                         break
             if match:
                     result.add(image_info)
-        print(f'result: {len(result)}')
+        logger.info(f"{len(result)} is searched.")
         return result
 
 def boyer_moore(text: str, pattern: str):

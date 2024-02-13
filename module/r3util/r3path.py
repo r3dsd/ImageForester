@@ -30,3 +30,15 @@ def check_path_exists(path: str) -> bool:
     return the path exists
     """
     return os.path.exists(path)
+
+def get_resource_path(relative_path: str):
+    """
+    Get absolute path to resource, works for dev and for PyInstaller
+    """
+    if getattr(sys, 'frozen', False):
+        # using PyInstaller
+        base_path = sys._MEIPASS
+    else:
+        # using python3 interpreter
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)

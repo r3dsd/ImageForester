@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QSizePolicy, QFileDialog, QDialog
+from PyQt5.QtCore import Qt, QTimer
 from ..worker import ExtendedWorker
 from ...data.data_loader import DataLoader
-from ..widgets.loadconfirmpopup import LoadConfirmPopup
+from ..widgets.popupFactory import PopupFactory
 from ...user_setting import UserSetting
 from ..guisignalmanager import GUISignalManager
 
@@ -22,26 +23,30 @@ class PathSelector(QWidget):
 
         self.path_label = QLabel()
         self.path_label.setText("Selected Path: ")
-        self.path_label.setMinimumHeight(30)
+        self.path_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.path_label.setMinimumHeight(25)
         self.path_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         bar_layout.addWidget(self.path_label, 8)
 
         self.path_select_button = QPushButton("Select Path")
-        self.path_select_button.setMinimumHeight(30)
-        bar_layout.addWidget(self.path_select_button, 1)
+        self.path_select_button.setMinimumHeight(25)
+        self.path_select_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        bar_layout.addWidget(self.path_select_button)
 
         self.path_select_button.clicked.connect(self._on_path_select_button_clicked)
 
-    
     def _on_path_select_button_clicked(self):
         sourcepath = QFileDialog.getExistingDirectory(self.mainwindow, 'Select Source Path')
         if sourcepath:
             self.path_label.setText(f"Selected Path: {sourcepath}")
             logger.info(f"worker started. Counting Loadable Images in {sourcepath}...")
-            self.worker = ExtendedWorker(DataLoader.get_loadable_count, sourcepath)
-            self.worker.result.connect(self._on_loadable_counting_finished)
-            self.worker.finished.connect(lambda: logger.info("worker finished."))
-            self.worker.start()
+            QTimer.singleShot(0, lambda: self._start_loadable_count_worker(sourcepath))
+
+    def _start_loadable_count_worker(self, sourcepath):
+        self.worker = ExtendedWorker(DataLoader.get_loadable_count, sourcepath)
+        self.worker.result.connect(self._on_loadable_counting_finished)
+        self.worker.finished.connect(lambda: logger.info("worker finished."))
+        self.worker.start()
 
     def _on_loadable_counting_finished(self, count):
         if count == 0:
@@ -53,7 +58,7 @@ class PathSelector(QWidget):
             self._image_load()
             return
         
-        result = LoadConfirmPopup(self.mainwindow, count).exec_()
+        result = PopupFactory(self).create_load_confirm_popup(count).exec_()
         if result == QDialog.Accepted:
             self._image_load()
 

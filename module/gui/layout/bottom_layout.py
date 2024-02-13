@@ -27,16 +27,19 @@ class BottomLayout(QBoxLayout):
         bar_layout = QHBoxLayout()
         self.load_count_label = QLabel()
         self.load_count_label.setText("Loaded Image : 0")
-        self.load_count_label.setMinimumHeight(30)
-        self.load_count_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        bar_layout.addWidget(self.load_count_label, 1)
+        self.load_count_label.setMinimumHeight(25)
+        self.load_count_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        self.load_count_label.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        bar_layout.addWidget(self.load_count_label)
 
         self.path_selector = PathSelector(self.mainwindow)
         bar_layout.addWidget(self.path_selector, 8)
 
-        self.option_button = QPushButton("Options")
-        self.option_button.setMinimumHeight(30)
-        bar_layout.addWidget(self.option_button, 1)
+        self.option_button = QPushButton("Short Cut Options")
+        self.option_button.setToolTip("Open User Setting (Simple Mode)")
+        self.option_button.setMinimumHeight(25)
+        self.option_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        bar_layout.addWidget(self.option_button)
 
         self.addLayout(bar_layout)
 
