@@ -1,6 +1,10 @@
 from ..data.data_container import DataContainer
 from ..data.imagefiledata import ImageFileData
 
+from ..logger import get_logger
+
+logger = get_logger(__name__)
+
 class SearchManager:
     @staticmethod
     def search(search_keywords: list[str]):
@@ -22,10 +26,10 @@ class SearchManager:
             else:
                 normal_keywords.append(keyword)
 
-        print(f'Normal Keywords: {normal_keywords}')
-        print(f'Negated Keywords: {negated_keywords}')
-        print(f'Exact Keywords: {exact_keywords}')
-        print(f'Negated Exact Keywords: {negated_exact_keywords}')
+        logger.info(f"normal_keywords: {normal_keywords}")
+        logger.info(f"negated_keywords: {negated_keywords}")
+        logger.info(f"exact_keywords: {exact_keywords}")
+        logger.info(f"negated_exact_keywords: {negated_exact_keywords}")
 
         for image_info in DataContainer.get_loaded_data():
             match = True

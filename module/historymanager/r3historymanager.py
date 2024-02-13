@@ -1,7 +1,9 @@
 from .r3history import R3MoveHistory, R3RemoveHistory, R3HistoryData
 from collections import deque
 
-PREFIX = "HistoryManager : "
+from ..logger import get_logger
+
+logger = get_logger(__name__)
 
 class R3HistoryManager:
     """
@@ -17,12 +19,12 @@ class R3HistoryManager:
     @classmethod
     def add_delete_history(cls, source, item, item_index):
         task = cls.add_history(R3RemoveHistory(source, item, item_index))
-        print(f"{PREFIX} {task} from {source.objectName()}")
+        logger.info(f"{task} from {source.objectName()}")
 
     @classmethod
     def add_move_history(cls, source, destination, item, source_index):
         task = cls.add_history(R3MoveHistory(source, destination, item, source_index))
-        print(f"{PREFIX} {task} from {source.objectName()} to {destination.objectName()}")
+        logger.info(f"{task} from {source.objectName()} to {destination.objectName()}")
 
     @classmethod
     def undo(cls):
@@ -30,7 +32,7 @@ class R3HistoryManager:
             undo_data: R3HistoryData = cls._undo_history.pop()
             undo_data.rollback()
         else:
-            print("No history to undo.")
+            logger.info("No more undo history")
 
     @classmethod
     def clear(cls):

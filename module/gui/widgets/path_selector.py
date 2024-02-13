@@ -37,9 +37,10 @@ class PathSelector(QWidget):
         sourcepath = QFileDialog.getExistingDirectory(self.mainwindow, 'Select Source Path')
         if sourcepath:
             self.path_label.setText(f"Selected Path: {sourcepath}")
-            
+            logger.info(f"worker started. Counting Loadable Images in {sourcepath}...")
             self.worker = ExtendedWorker(DataLoader.get_loadable_count, sourcepath)
             self.worker.result.connect(self._on_loadable_counting_finished)
+            self.worker.finished.connect(lambda: logger.info("worker finished."))
             self.worker.start()
 
     def _on_loadable_counting_finished(self, count):
@@ -57,11 +58,10 @@ class PathSelector(QWidget):
             self._image_load()
 
     def _image_load(self):
-        logger.info("worker created.")
         self.worker = ExtendedWorker(DataLoader.load_using_multi)
         self.worker.finished.connect(self._on_load_complete)
         self.worker.start()
-        logger.info("worker started.")
 
     def _on_load_complete(self):
         GUISignalManager().on_load_complete.emit()
+        logger.info("Image Load Complete.")

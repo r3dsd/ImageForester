@@ -1,5 +1,9 @@
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
 
+from ..logger import get_logger
+
+logger = get_logger(__name__)
+
 class Worker(QObject):
     finished = pyqtSignal()
     result = pyqtSignal(object)
@@ -26,18 +30,16 @@ class ExtendedWorker(QObject):
         self.kwargs = kwargs
         self.thread = QThread()
         self.moveToThread(self.thread)
-
-        # 시그널 연결
         self.finished.connect(self.thread.quit)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.started.connect(self.run)
 
     def start(self):
-        """스레드 시작 메서드"""
+        logger.info("worker started.")
         self.thread.start()
 
     def run(self):
-        """스레드에서 실행할 작업"""
+        logger.info("worker running.")
         result = self.func(*self.args, **self.kwargs)
-        self.result.emit(result)
         self.finished.emit()
+        self.result.emit(result)

@@ -83,7 +83,7 @@ def get_png_description(file_path) -> tuple[ImageFileData, bool]:
         with Image.open(file_path) as img:
             tmp = read_info_from_image_stealth(img)
             if tmp:
-                logger.info(f"sucessfully extracted from Stealth data : {file_path}")
+                logger.info(f"Description sucessfully extracted from Stealth data : {file_path}")
                 desc = json.loads(tmp)['Description']
                 return (ImageFileData(file_path, desc), True)
     logger.warning(f"Description Not Found : {file_path}")
