@@ -1,10 +1,13 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QSizePolicy, QFileDialog, QDialog
-from PyQt5.QtCore import QThread
-from ..worker import Worker
+from ..worker import ExtendedWorker
 from ...data.data_loader import DataLoader
 from ..widgets.loadconfirmpopup import LoadConfirmPopup
 from ...user_setting import UserSetting
 from ..guisignalmanager import GUISignalManager
+
+from ...logger import get_logger
+
+logger = get_logger(__name__)
 
 class PathSelector(QWidget):
     def __init__(self, mainwindow):
@@ -35,15 +38,9 @@ class PathSelector(QWidget):
         if sourcepath:
             self.path_label.setText(f"Selected Path: {sourcepath}")
             
-            self.background_thread = QThread()
-            self.worker = Worker(DataLoader.get_loadable_count, sourcepath)
-            self.worker.moveToThread(self.background_thread)
+            self.worker = ExtendedWorker(DataLoader.get_loadable_count, sourcepath)
             self.worker.result.connect(self._on_loadable_counting_finished)
-            self.worker.finished.connect(self.worker.deleteLater)
-            self.worker.finished.connect(self.background_thread.quit)
-            self.background_thread.finished.connect(self.background_thread.deleteLater)
-            self.background_thread.started.connect(self.worker.run)
-            self.background_thread.start()
+            self.worker.start()
 
     def _on_loadable_counting_finished(self, count):
         if count == 0:
@@ -51,7 +48,7 @@ class PathSelector(QWidget):
             return
         
         if UserSetting.get('DONT_SHOW_LOAD_CONFIRM') == True:
-            print("Auto Load Confirm is Enabled. Loading...")
+            logger.info("Auto Load Enabled. Loading Images...")
             self._image_load()
             return
         
@@ -60,18 +57,11 @@ class PathSelector(QWidget):
             self._image_load()
 
     def _image_load(self):
-        if self.background_thread is not None and self.background_thread.isRunning():
-            self.background_thread.quit()
-            self.background_thread.wait()
-        self.background_thread = QThread()
-        self.worker = Worker(DataLoader.load_using_multi)
-        self.worker.moveToThread(self.background_thread)
+        logger.info("worker created.")
+        self.worker = ExtendedWorker(DataLoader.load_using_multi)
         self.worker.finished.connect(self._on_load_complete)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.worker.finished.connect(self.background_thread.quit)
-        self.background_thread.started.connect(self.worker.run)
-        self.background_thread.finished.connect(self.background_thread.deleteLater)
-        self.background_thread.start()
+        self.worker.start()
+        logger.info("worker started.")
 
     def _on_load_complete(self):
         GUISignalManager().on_load_complete.emit()

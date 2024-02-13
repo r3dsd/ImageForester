@@ -23,7 +23,7 @@ class DataContainer:
         return cls._loaded_data
     
     @classmethod
-    def set_loaded_data(cls, data: set[str]) -> None:
+    def set_loaded_data(cls, data: set[ImageFileData]) -> None:
         if len(cls._loaded_data) > 0:
             cls._loaded_data.clear()
         cls._loaded_data = data

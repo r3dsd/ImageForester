@@ -51,7 +51,5 @@ class MainGui:
         _central_Layout.addLayout(middle_layout)
         _central_Layout.addLayout(bottom_layout)
 
-
-
 if __name__ == "__main__":
     MainGui()

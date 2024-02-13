@@ -8,6 +8,9 @@ from .stealth_pnginfo import read_info_from_image_stealth
 from ..constants import IMAGE_FORMATS
 from ..user_setting import UserSetting
 from .imagefiledata import ImageFileData
+from ..logger import get_logger
+
+logger = get_logger(__name__)
 
 class DataLoader:
     _loadable_file_list: list[str] = [] # str : file_path
@@ -29,9 +32,11 @@ class DataLoader:
         files_to_process = cls._loadable_file_list
 
         max_workers = os.cpu_count()
+        results = set()
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            results = set(executor.map(process_file, files_to_process))
-
+            for result in executor.map(process_file, files_to_process):
+                    if result is not None:
+                        results.add(result)
         cls._loadable_file_list.clear()
         DataContainer.set_loaded_data(results)
 
@@ -64,12 +69,12 @@ def get_png_description(file_path) -> tuple[ImageFileData, bool]:
                     key = key.decode('latin1')
                     if key == "Description":
                         value = value.decode('latin1')
-                        print(f"Description : {file_path}")
+                        logger.info(f"sucessfully extracted from Description : {file_path}")
                         return (ImageFileData(file_path, value), True)
                     elif key == "Comment":
                         value = value.decode('latin1')
                         prompt_data = json.loads(value)['prompt']
-                        print(f"Description : {file_path}")
+                        logger.info(f"sucessfully extracted from Comment : {file_path}")
                         return (ImageFileData(file_path, prompt_data), True)
             else:
                 f.seek(chunk_length, 1)
@@ -78,10 +83,10 @@ def get_png_description(file_path) -> tuple[ImageFileData, bool]:
         with Image.open(file_path) as img:
             tmp = read_info_from_image_stealth(img)
             if tmp:
-                print(f"Util : Stealth Mode Description : {file_path}")
+                logger.info(f"sucessfully extracted from Stealth data : {file_path}")
                 desc = json.loads(tmp)['Description']
                 return (ImageFileData(file_path, desc), True)
-    print(f"Util : Description not found : {file_path}")
+    logger.warning(f"Description Not Found : {file_path}")
     return (None, False)
 
 def check_is_image(file_name: str) -> bool:
