@@ -1,32 +1,44 @@
 from .r3util import r3path
 import json
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 class UserSetting:
     SETTING = {}
     DEFALUT_SETTING = {
-        'IMAGE_SOURCE_DIR' : '',
         'IMAGE_SAVE_DIR' : r3path.get_defalut_save_path(), # Image save directory
         'SAVE_MODE' : 'Copy', # Save mode (Copy, Move)
         'STEALTH_MODE' : False, # Stealth mode (True, False)
+        'DONT_SHOW_LOAD_CONFIRM' : False, # Auto load (True, False)
     }
     @classmethod
     def load(cls) -> None:
         try:
             if r3path.check_path_exists('User_Settings.json'):
-                print('User_Settings.json exists... loading...')
+                logger.info('User_Settings.json exists... loading...')
                 with open('User_Settings.json', 'r') as f:
                     cls.SETTING = json.load(f)
+
+                missing_keys = list(set(cls.DEFALUT_SETTING.keys()) - set(cls.SETTING.keys()))
+                if missing_keys:
+                    logger.info(f'User_Settings.json is missing options: {missing_keys} ... updating...')
+                    for key in missing_keys:
+                        cls.SETTING[key] = cls.DEFALUT_SETTING[key]
+                    with open('User_Settings.json', 'w') as f:
+                        json.dump(cls.SETTING, f, indent=4)
+                    logger.info('User_Settings.json updated...')
             else:
-                print('User_Settings.json does not exist... creating...')
+                logger.info('User_Settings.json does not exists... creating new User_Settings.json...')
                 cls.SETTING = cls.DEFALUT_SETTING
                 with open('User_Settings.json', 'w') as f:
-                    json.dump(cls.SETTING, f)
+                    json.dump(cls.SETTING, f, indent=4)
 
-            print('successfully loaded User_Settings.json...')
+            logger.info("successfully loaded User_Settings.json...")
             for key, value in cls.SETTING.items():
-                print(f'[{key}] : {value}')
+                logger.info(f"UserSetting : [{key}] : {value}")
         except Exception as e:
-            print(f'UserSetting File is broken... {e} ... creating new UserSetting file...')
+            logger.warning(f'Error: {e}')
             cls.SETTING = cls.DEFALUT_SETTING
             cls.save()
             
@@ -34,24 +46,29 @@ class UserSetting:
     def save(cls) -> None:
         try:
             with open('User_Settings.json', 'w') as f:
-                json.dump(cls.SETTING, f)
-                print('User_Settings.json saved...')
+                json.dump(cls.SETTING, f, indent=4)
+            logger.info("successfully saved User_Settings.json...")
         except Exception as e:
-            print(f'Error: {e}')
+            logger.warning(f'Error: {e}')
+            logger.info("User_Settings.json is missing... creating defalut User_Settings.json...")
+            cls.SETTING = cls.DEFALUT_SETTING
+            cls.save()
 
     @classmethod
-    def get(cls, key: str) -> str:
+    def get(cls, key: str) -> str | bool:
         try:
             if key == 'SAVE_MODE':
                 assert cls.SETTING[key] == 'Copy' or cls.SETTING[key] == 'Move', f'UserSetting : {key} is not in UserSetting'
             return cls.SETTING[key]
         except:
+            logger.error(f"UserSetting : {key} is not in UserSetting")
             RuntimeError(f"UserSetting : {key} is not in UserSetting")
     
     @classmethod
     def set(cls, key: str, value: str) -> None:
-        print(f"UserSetting Changed: [{key}] : {cls.SETTING[key]} -> {value}")
+        logger.info(f"UserSetting Changed: [{key}] : {cls.SETTING[key]} -> {value}")
         if cls.SETTING.keys().__contains__(key):
             cls.SETTING[key] = value
         else:
+            logger.error(f"UserSetting : {key} is not in UserSetting")
             raise RuntimeError(f"UserSetting : {key} is not in UserSetting")

@@ -1,5 +1,5 @@
 PROGRAM_NAME = 'Image Forester'
-PROGRAM_VERSION = '0.0.1'
+PROGRAM_VERSION = 'v0.0.1'
 PROGRAM_AUTHOR = 'r3dsd'
 
 IMAGE_FORMATS = ('.png')
@@ -60,6 +60,17 @@ GUI_STYLE_SHEET = {
             QComboBox::item:selected {
                 background: #EEE;
                 color: #111;
+            }
+            QToolBar {
+                background: #333;
+            }
+            QToolButton {
+                background-color: #333;
+                border: 1px solid #444;
+            }
+            QToolButton:pressed {
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                        stop: 0 #222, stop: 1 #444);
             }
         """,
     'LIGHT': """

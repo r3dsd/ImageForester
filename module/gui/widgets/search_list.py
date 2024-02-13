@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QLabel, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QLabel, QWidget, QVBoxLayout, QPushButton
 from PyQt5.QtCore import Qt
 
 from ...historymanager.r3historymanager import R3HistoryManager
@@ -27,6 +27,11 @@ class SearchList(QWidget):
         self.list.setObjectName("SearchList")
         layout.addWidget(self.list)
 
+        self.send2trash_button = QPushButton("Send2Trash")
+        self.send2trash_button.setMinimumHeight(30)
+        self.send2trash_button.setDisabled(True)
+        layout.addWidget(self.send2trash_button)
+
         self.list.itemClicked.connect(self._on_user_select)
         self.list.currentItemChanged.connect(self._on_user_select)
 
@@ -51,7 +56,8 @@ class SearchList(QWidget):
             self.list.addItem(tmp)
         self._update_count_label()
 
-        self.setFocus()
+        if search_list:
+            self.setFocus()
 
     def keyPressEvent(self, event) -> None:
         key = event.key()

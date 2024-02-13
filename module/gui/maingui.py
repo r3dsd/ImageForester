@@ -5,15 +5,19 @@ from module.constants import GUI_STYLE_SHEET, PROGRAM_NAME, PROGRAM_VERSION
 from ..user_setting import UserSetting
 from . import layout as MyLayout
 from .guisignalmanager import GUISignalManager
+from .widgets.toolbar import MyToolBar
+from ..logger import get_logger
+
+logger = get_logger(__name__)
 
 class MainGui:
     def __init__(self):
         App = QApplication(sys.argv)
         App.setStyle('Fusion')
+        logger.info(f"{PROGRAM_NAME} {PROGRAM_VERSION} Started.")
         UserSetting.load()
-        a = GUISignalManager()
+        GUISignalManager()
         self._initUI()
-        print(f"{PROGRAM_NAME} {PROGRAM_VERSION} started.")
         sys.exit(App.exec_())
 
     def _initUI(self):
@@ -28,6 +32,10 @@ class MainGui:
         self._mainwindow.setWindowTitle(f"{PROGRAM_NAME} {PROGRAM_VERSION}")
         self._mainwindow.setGeometry(100, 100, 1280, 720)
         self._mainwindow.setStyleSheet(GUI_STYLE_SHEET['DARK']) # for debugging, use 'DARK' or 'LIGHT'
+
+        self.toolbar = MyToolBar(self._mainwindow)
+        self._mainwindow.addToolBar(self.toolbar)
+        self.toolbar.setMovable(False)
 
     def _init_central_widget(self):
         _central_widget = QWidget()

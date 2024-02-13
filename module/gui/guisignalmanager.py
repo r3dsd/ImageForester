@@ -17,6 +17,7 @@ class GUISignalManager(QObject, metaclass=Singleton):
     on_search_complete = pyqtSignal(object)
     on_load_complete = pyqtSignal()
     on_item_selection_updated = pyqtSignal(ImageFileData)
+    on_load_image_empty = pyqtSignal()
     _instance = None
 
     def __new__(cls):
@@ -35,3 +36,6 @@ class GUISignalManager(QObject, metaclass=Singleton):
 
     def emit_on_item_selection_updated(self, data):
         self.on_item_selection_updated.emit(data)
+
+    def emit_on_load_image_empty(self):
+        self.on_load_image_empty.emit()

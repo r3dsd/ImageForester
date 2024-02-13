@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QLabel, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QLabel, QWidget, QVBoxLayout, QHBoxLayout, QPushButton
 from PyQt5.QtCore import Qt
 
 from ...historymanager.r3historymanager import R3HistoryManager
@@ -24,6 +24,11 @@ class SelectList(QWidget):
         self.list.keyPressEvent = self.keyPressEvent
         self.list.setObjectName("SelectList")
         layout.addWidget(self.list)
+
+        self.save_button = QPushButton("Save")
+        self.save_button.setMinimumHeight(30)
+        self.save_button.setDisabled(True)
+        layout.addWidget(self.save_button)
 
         self.list.itemClicked.connect(self._on_user_select)
         self.list.currentItemChanged.connect(self._on_user_select)
