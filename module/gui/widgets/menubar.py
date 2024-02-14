@@ -1,10 +1,14 @@
 from PyQt5.QtWidgets import QMenuBar, QAction
 from .settingdialog import SettingDialog
-from ..widgets.popupFactory import PopupFactory
+from ..widgets.image_tagger_window import ImageTaggerWindow
+from ...logger import get_logger
+
+logger = get_logger(__name__)
 
 class MyMenuBar(QMenuBar):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.image_tagger_window: ImageTaggerWindow = None
         self._initUI()
 
     def _initUI(self):
@@ -24,9 +28,16 @@ class MyMenuBar(QMenuBar):
         toolsMenu.addAction(image_tagging_action)
         toolsMenu.addAction(settingAction)
 
-
     def openSettingDialog(self):
         SettingDialog(self.parent(), full_setting=True)
 
     def openImageTaggerwindow(self):
-        PopupFactory(self.parent()).create_popup("Image Tagging is not implemented yet").exec()
+        if self.image_tagger_window and not self.image_tagger_window.isVisible():
+            logger.debug("ImageTaggerWindow is already opened")
+            self.image_tagger_window.show()
+            self.image_tagger_window.raise_()
+            self.image_tagger_window.activateWindow()
+        else:
+            logger.debug("Open ImageTaggerWindow")
+            self.image_tagger_window = ImageTaggerWindow(self.parent())
+            self.image_tagger_window.show()

@@ -37,6 +37,11 @@ class DataLoader:
             for result in executor.map(process_file, files_to_process):
                     if result is not None:
                         results.add(result)
+        result_path_list: list[str] = [result.file_path for result in results]
+
+        load_failed_data = set(files_to_process) - set(result_path_list)
+        DataContainer.set_load_failed_data(load_failed_data)
+
         cls._loadable_file_list.clear()
         DataContainer.set_loaded_data(results)
 
@@ -88,7 +93,3 @@ def get_png_description(file_path) -> tuple[ImageFileData, bool]:
                 return (ImageFileData(file_path, desc), True)
     logger.warning(f"Description Not Found : {file_path}")
     return (None, False)
-
-def check_is_image(file_name: str) -> bool:
-    return file_name.split(".")[-1] in IMAGE_FORMATS
-

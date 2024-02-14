@@ -2,9 +2,10 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLab
 from PyQt5.QtCore import Qt
 from ...user_setting import UserSetting
 from ...config import FILEMANAGER_CONFIG
+from .image_tagger_window import ImageTaggerWindow
 import winsound
 
-class PopupFactory:
+class DialogFactory:
     def __init__(self, parent):
         self.parent = parent
 
@@ -30,6 +31,9 @@ class PopupFactory:
     def create_folder_open_popup(self, count):
         winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
         return FolderOpenPopup(self.parent, count)
+    
+    def create_image_tagger_popup(self):
+        return ImageTaggerWindow(self.parent)
     
 class DefalutPopup(QDialog):
     def __init__(self, parent, message, button_text="OK"):

@@ -2,7 +2,7 @@ import re
 from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QLabel, QWidget, QVBoxLayout, QPushButton
 from PyQt5.QtCore import Qt
 
-from ..widgets.popupFactory import PopupFactory
+from ..widgets.popupFactory import DialogFactory
 
 from ...historymanager.r3historymanager import R3HistoryManager
 from ..guisignalmanager import GUISignalManager
@@ -130,13 +130,13 @@ class SelectList(QWidget):
         if not UserSetting.get('DISABLE_OPEN_FOLDER_POPUP'):
             pass
         else:
-            PopupFactory(self.parent()).create_folder_open_popup(count=len(target_list)).exec_()
+            DialogFactory(self.parent()).create_folder_open_popup(count=len(target_list)).exec_()
 
     def _open_set_folder_name_popup(self):
         try:
             FILEMANAGER_CONFIG['SAVE_FILE_NAME'] = ''
             while True:
-                popup = PopupFactory(self.parent()).create_input_folder_name_popup()
+                popup = DialogFactory(self.parent()).create_input_folder_name_popup()
                 popup.exec_()
                 folder_name = popup.result
                 if folder_name == '':

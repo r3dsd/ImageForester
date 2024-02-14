@@ -8,6 +8,9 @@ class DataContainer:
     _loaded_data: set[ImageFileData] = set()
     loaded_data_count: int = 0
 
+    _load_failed_data: set[str] = set() # No Description Files
+    load_failed_data_count: int = 0
+
     _searched_data: set[ImageFileData] = set()
     searched_data_count: int = 0
 
@@ -53,6 +56,23 @@ class DataContainer:
         cls.searched_data_count = len(data)
 
     @classmethod
+    def set_load_failed_data(cls, data: set[str]) -> None:
+        if len(cls._load_failed_data) > 0:
+            cls._load_failed_data.clear()
+        cls._load_failed_data = data
+        cls.load_failed_data_count = len(data)
+        logger.debug(f"No Description File count: {cls.load_failed_data_count}")
+
+    @classmethod
+    def get_load_failed_data(cls) -> set[str]:
+        logger.debug(f"No Description File count: {cls._load_failed_data}")
+        return cls._load_failed_data
+
+    @classmethod
     def clear(cls) -> None:
         cls._loaded_data.clear()
         cls.loaded_data_count = 0
+
+    @classmethod
+    def has_load_failed_data(cls) -> bool:
+        return cls.load_failed_data_count > 0

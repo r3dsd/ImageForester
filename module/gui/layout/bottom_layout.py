@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from ..widgets.settingdialog import SettingDialog
 from ...data.data_container import DataContainer
 from ..guisignalmanager import GUISignalManager
-from ..widgets.popupFactory import PopupFactory
+from ..widgets.popupFactory import DialogFactory
 from ...data.imagefiledata import ImageFileData
 from ..widgets.path_selector import PathSelector
 from ...r3util.r3lib import HighlightingText
@@ -66,7 +66,7 @@ class BottomLayout(QBoxLayout):
         self.info_console.setText(f"Successfully loaded {DataContainer.loaded_data_count} images.")
 
     def _on_load_image_empty(self):
-        PopupFactory(self._mainwindow).create_popup("No loadable images in the selected path.")
+        DialogFactory(self._mainwindow).create_popup("No loadable images in the selected path.")
         self.load_count_label.setText("Loaded Image : 0")
 
     def _on_search_list_send2trash(self):
