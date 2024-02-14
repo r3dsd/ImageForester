@@ -12,8 +12,9 @@ from tqdm import tqdm
 from ..config import TAGGER_CONFIG
 from ..constants import IMAGE_FORMATS
 from ..HuggingFaceDownloader import HuggingFaceDownloader as HFDownloader
-import os
+from ..logger import get_logger
 
+logger = get_logger(__name__)
 
 class ImageTagger:
     def __init__(
@@ -150,32 +151,25 @@ class ImageTagger:
             return False
 
     def _add_text_chunk(self, png_file_path, text_key, text_value):
-        # 파일 읽기
         with open(png_file_path, 'rb') as f:
             original_data = f.read()
         
-        # PNG 시그니처 검증
         if original_data[:8] != b'\x89PNG\r\n\x1a\n':
             raise ValueError("Not a valid PNG file")
         
-        # IHDR 청크 찾기 (시그니처 이후 첫 번째 청크)
-        ihdr_end = 8 + 4 + 4 + 13 + 4  # 시그니처(8바이트) + 청크 길이(4바이트) + 'IHDR'(4바이트) + IHDR 데이터(13바이트) + CRC(4바이트)
+        ihdr_end = 8 + 4 + 4 + 13 + 4
         
-        # `tEXt` 청크 생성
         text_data = text_key.encode('latin1') + b'\x00' + text_value.encode('latin1')
         text_chunk_length = struct.pack(">I", len(text_data))
         text_chunk_type = b'tEXt'
         text_chunk_crc = struct.pack(">I", zlib.crc32(text_chunk_type + text_data) & 0xffffffff)
         text_chunk = text_chunk_length + text_chunk_type + text_data + text_chunk_crc
         
-        # 새 PNG 데이터 생성: IHDR 청크 다음에 `tEXt` 청크 삽입
         new_png_data = original_data[:ihdr_end] + text_chunk + original_data[ihdr_end:]
 
-        # 'taged_images' 폴더 경로 생성
         save_directory = os.path.join(os.path.dirname(png_file_path), "taged_images")
-        os.makedirs(save_directory, exist_ok=True)  # 폴더가 없으면 생성
+        os.makedirs(save_directory, exist_ok=True)
 
-        # 새 파일 경로에 'taged_images' 폴더 포함
         new_file_path = os.path.join(save_directory, os.path.basename(png_file_path).rsplit('.', 1)[0] + "_with_tags.png")
 
         with open(new_file_path, 'wb') as f:
@@ -189,13 +183,12 @@ class ImageTagger:
         include_ranks=False,
         score_descend=True,
     ):
-        print(f"인식한 이미지 : {len(self.image_files)} 개")
-        """디렉토리 내의 이미지에 대한 태그를 생성합니다."""
+        logger.info(f"Processing directory: {self.image_directory} with {len(self.image_files)} images")
         for filename in self.image_files:
             image_path = os.path.join(self.image_directory, filename)
             image = Image.open(image_path)
             if self._has_description(image):
-                print(f"description이 이미 존재합니다: {filename}")
+                logger.info(f"Description already exists: {filename}")
                 continue
             else:
                 ratings, tags_text, filtered_tags = self.tag_image(
@@ -206,9 +199,30 @@ class ImageTagger:
                     include_ranks,
                     score_descend,
                 )
-                # add_text_chunk로 정보를 추가하고 저장
                 self._add_text_chunk(image_path, "Description", tags_text)
-                print(f"description이 추가되었습니다: {filename}")
+                logger.info(f"Tags added to {filename}")
 
-if __name__ == "__main__":
-    ImageTagger().process_directory()
+def add_tag(png_file_path, text_value):
+    logger.info(f"Adding tag to {png_file_path}")
+    key = "Description"
+    with open(png_file_path, 'rb') as f:
+        original_data = f.read()
+    
+    if original_data[:8] != b'\x89PNG\r\n\x1a\n':
+        raise ValueError("Not a valid PNG file")
+    
+    ihdr_end = 8 + 4 + 4 + 13 + 4
+    
+    text_data = key.encode('latin1') + b'\x00' + text_value.encode('latin1')
+    text_chunk_length = struct.pack(">I", len(text_data))
+    text_chunk_type = b'tEXt'
+    text_chunk_crc = struct.pack(">I", zlib.crc32(text_chunk_type + text_data) & 0xffffffff)
+    text_chunk = text_chunk_length + text_chunk_type + text_data + text_chunk_crc
+    
+    new_png_data = original_data[:ihdr_end] + text_chunk + original_data[ihdr_end:]
+    save_directory = os.path.join(os.path.dirname(png_file_path), "taged_images")
+    os.makedirs(save_directory, exist_ok=True)
+    new_file_path = os.path.join(save_directory, os.path.basename(png_file_path).rsplit('.', 1)[0] + "_with_tags.png")
+    with open(new_file_path, 'wb') as f:
+        f.write(new_png_data)
+    logger.info(f"Succesfully added tag to {png_file_path}")
