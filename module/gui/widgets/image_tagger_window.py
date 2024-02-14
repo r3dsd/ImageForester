@@ -1,10 +1,11 @@
 import os
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QFrame, QHBoxLayout, QPushButton, QSizePolicy, QLineEdit, QListWidgetItem
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QHBoxLayout, QPushButton, QSizePolicy, QLineEdit, QListWidgetItem
 from PyQt5.QtGui import QPixmap
 from ..guisignalmanager import GUISignalManager
 from ...data.data_container import DataContainer
 from ...imagetagger.imagetagger import ImageTagger, add_tag
+from ..worker import ExtendedWorker
 
 from ...logger import get_logger
 
@@ -93,6 +94,8 @@ class ImageTaggerWindow(QDialog):
         self._button_disable()
 
     def _preview_image_update(self, item: QListWidgetItem):
+        if item is None:
+            return
         image_path = item.text()
         normpath = os.path.normpath(image_path)
         pixmap = QPixmap(normpath)
@@ -100,7 +103,11 @@ class ImageTaggerWindow(QDialog):
         self.preview_image.setPixmap(scaled_pixmap)
 
     def _on_auto_tag_button_clicked(self):
-        pass
+        path_list = [self.list.item(i).text() for i in range(self.list.count())]
+        logger.info("ImageTagger worker started.")
+        self.worker = ExtendedWorker(ImageTagger().auto_tagging, path_list)
+        self.worker.finished.connect(self._on_auto_tagging_finished)
+        self.worker.start()
 
     def _on_tag_edit_button_clicked(self):
         if self.list.currentItem() is not None:
@@ -113,6 +120,14 @@ class ImageTaggerWindow(QDialog):
                 self._preview_image_update(self.list.currentItem())
             else:
                 self.update_ui()
+
+    def _on_auto_tagging_finished(self):
+        logger.info("ImageTagger worker finished.")
+        self.list.clear()
+        self.preview_image.clear()
+        self._button_disable()
+        self._update_no_data_ui()
+        DataContainer.clear_load_failed_data()
 
     def _all_hide(self):
         self.message_label.hide()

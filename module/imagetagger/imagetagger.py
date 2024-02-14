@@ -10,42 +10,25 @@ from onnxruntime import InferenceSession
 from typing import Mapping, Tuple, Dict
 from tqdm import tqdm
 from ..config import TAGGER_CONFIG
-from ..constants import IMAGE_FORMATS
-from ..HuggingFaceDownloader import HuggingFaceDownloader as HFDownloader
+from ..HuggingFaceDownloader.HuggingFaceDownloader import HFDownloader
 from ..logger import get_logger
 
 logger = get_logger(__name__)
 
 class ImageTagger:
-    def __init__(
-        self,
-        model_path="./module/model/model.onnx",
-        tags_path="./module/model/selected_tags.csv",
-        image_directory="./src/input",
-        image_files=None,
-    ) -> None:
-        self.image_directory = TAGGER_CONFIG["IMAGE_TAGGER_INPUT_DIR"]
-        self.__model_path = model_path
-        self.__tags_path = tags_path
+    def __init__(self) -> None:
         self.__initialized = False
         self._model, self._tags = None, None
-        if image_files is None:
-            self.image_files = [filename for filename in os.listdir(self.image_directory) if filename.endswith((IMAGE_FORMATS))
-            ]
-        else:
-            self.image_files = image_files
 
     def _init(self) -> None:
         if self.__initialized:
             return
+        self.__model_path = HFDownloader().download_model(TAGGER_CONFIG["MODEL_NAME"])
+        self.__tags_path = HFDownloader().download_model(TAGGER_CONFIG["TAGS_FILE_NAME"])
 
-        if not os.path.exists(self.__model_path):
-            HFDownloader().download_model(self.__model_path.split("/")[-1])
+        logger.info(f"Succesfully model and tags loaded!")
 
-        if not os.path.exists(self.__tags_path):
-            HFDownloader().download_model(self.__tags_path.split("/")[-1])
-
-        self._model = InferenceSession(str(self.__model_path))
+        self._model = InferenceSession(self.__model_path)
         self._tags = pd.read_csv(self.__tags_path)
         self.__initialized = True
 
@@ -183,12 +166,11 @@ class ImageTagger:
         include_ranks=False,
         score_descend=True,
     ):
-        logger.info(f"Processing directory: {self.image_directory} with {len(self.image_files)} images")
-        for filename in self.image_files:
-            image_path = os.path.join(self.image_directory, filename)
-            image = Image.open(image_path)
+        logger.info(f"Image Tagging Started")
+        for file_path in self.image_files:
+            image = Image.open(file_path)
             if self._has_description(image):
-                logger.info(f"Description already exists: {filename}")
+                logger.info(f"Description already exists: {file_path}")
                 continue
             else:
                 ratings, tags_text, filtered_tags = self.tag_image(
@@ -199,8 +181,27 @@ class ImageTagger:
                     include_ranks,
                     score_descend,
                 )
-                self._add_text_chunk(image_path, "Description", tags_text)
-                logger.info(f"Tags added to {filename}")
+                self._add_text_chunk(file_path, "Description", tags_text)
+                logger.info(f"Tags added to {file_path}")
+
+    def auto_tagging(self, image_file_path_list: list[str], confidence=TAGGER_CONFIG["IMAGE_TAGGER_CONFIDENCE_THRESHOLD"], use_spaces=True, use_escape=True, include_ranks=False, score_descend=True):
+        logger.info(f"Auto Tagging Started")
+        for file_path in image_file_path_list:
+            image = Image.open(file_path)
+            if self._has_description(image):
+                logger.warning(f"Description already exists: {file_path}")
+                continue
+            else:
+                ratings, tags_text, filtered_tags = self.tag_image(
+                    image,
+                    confidence,
+                    use_spaces,
+                    use_escape,
+                    include_ranks,
+                    score_descend,
+                )
+                self._add_text_chunk(file_path, "Description", tags_text)
+                logger.info(f"Tags added to {file_path}")
 
 def add_tag(png_file_path, text_value):
     logger.info(f"Adding tag to {png_file_path}")

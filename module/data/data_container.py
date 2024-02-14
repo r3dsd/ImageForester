@@ -67,6 +67,11 @@ class DataContainer:
     def get_load_failed_data(cls) -> set[str]:
         logger.debug(f"No Description File count: {cls._load_failed_data}")
         return cls._load_failed_data
+    
+    @classmethod
+    def clear_load_failed_data(cls) -> None:
+        cls._load_failed_data.clear()
+        cls.load_failed_data_count = 0
 
     @classmethod
     def clear(cls) -> None:
