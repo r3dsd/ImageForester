@@ -1,7 +1,6 @@
 from .r3util import r3path
 import json
 from .logger import get_logger
-from enum import Enum
 
 logger = get_logger(__name__)
 
@@ -14,6 +13,7 @@ class UserSetting:
         'STEALTH_MODE' : False, # Stealth mode (True, False)
         'DONT_SHOW_LOAD_CONFIRM' : False, # Auto load (True, False)
         'GUI_STYLE' : 'DARK', # GUI Style ('DARK', 'LIGHT')
+        'FORCE_DELETE' : False, # Force delete (True, False) if true, in list, delete button will be send2trash, false, delete button will be only list delete
     }
     @classmethod
     def load(cls) -> None:

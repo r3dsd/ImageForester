@@ -35,6 +35,8 @@ class MiddleLayout(QBoxLayout):
         self.addWidget(self.image_viewer)
 
         GUISignalManager().on_item_selection_updated.connect(self._on_item_selection_updated)
+        GUISignalManager().on_search_list_send2trash.connect(self.clear_image_viewer)
+        GUISignalManager().on_select_list_save.connect(self.clear_image_viewer)
 
     def _on_item_selection_updated(self, image_data: ImageFileData):
         self.set_image_viewer(image_data.file_path)

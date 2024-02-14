@@ -19,6 +19,8 @@ class GUISignalManager(QObject, metaclass=Singleton):
     on_item_selection_updated = pyqtSignal(ImageFileData)
     on_load_image_empty = pyqtSignal()
     on_gui_style_changed = pyqtSignal(str)
+    on_select_list_save = pyqtSignal()
+    on_search_list_send2trash = pyqtSignal()
     _instance = None
 
     def __new__(cls):
@@ -43,3 +45,9 @@ class GUISignalManager(QObject, metaclass=Singleton):
 
     def emit_on_gui_style_changed(self, style):
         self.on_gui_style_changed.emit(style)
+
+    def emit_on_select_list_save(self):
+        self.on_select_list_save.emit()
+
+    def emit_on_search_list_send2trash(self):
+        self.on_search_list_send2trash.emit()

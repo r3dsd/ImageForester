@@ -1,5 +1,9 @@
 from .imagefiledata import ImageFileData
 
+from ..logger import get_logger
+
+logger = get_logger(__name__)
+
 class DataContainer:
     _loaded_data: set[ImageFileData] = set()
     loaded_data_count: int = 0
@@ -28,11 +32,14 @@ class DataContainer:
             cls._loaded_data.clear()
         cls._loaded_data = data
         cls.loaded_data_count = len(data)
+        logger.debug(f"Loaded data count: {cls.loaded_data_count}")
 
     @classmethod
     def delete_loaded_data(cls, data: set[ImageFileData]) -> None:
+        before_count = cls.loaded_data_count
         cls._loaded_data.difference_update(data)
         cls.loaded_data_count = len(cls._loaded_data)
+        logger.debug(f"Delete loaded data count: {before_count} -> {cls.loaded_data_count}")
 
     @classmethod
     def get_searched_data(cls) -> set[ImageFileData]:

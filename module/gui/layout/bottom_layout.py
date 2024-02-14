@@ -26,7 +26,7 @@ class BottomLayout(QBoxLayout):
 
         bar_layout = QHBoxLayout()
         self.load_count_label = QLabel()
-        self.load_count_label.setText("Loaded Image : 0")
+        self.load_count_label.setText("Loaded : 0")
         self.load_count_label.setMinimumHeight(25)
         self.load_count_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         self.load_count_label.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -46,8 +46,10 @@ class BottomLayout(QBoxLayout):
     def _initsignal(self):
         self.option_button.clicked.connect(self._on_option_button_clicked)
         GUISignalManager().on_item_selection_updated.connect(self._on_item_selection_updated)
-        GUISignalManager().on_load_complete.connect(self.on_load_complete)
-        GUISignalManager().on_load_image_empty.connect(self.on_load_image_empty)
+        GUISignalManager().on_load_complete.connect(self._on_load_complete)
+        GUISignalManager().on_load_image_empty.connect(self._on_load_image_empty)
+        GUISignalManager().on_search_list_send2trash.connect(self._on_search_list_send2trash)
+        GUISignalManager().on_select_list_save.connect(self._on_select_list_save)
 
     def _on_option_button_clicked(self):
         SettingDialog(self.mainwindow)
@@ -56,10 +58,17 @@ class BottomLayout(QBoxLayout):
         highlight_text = HighlightingText(image_data.file_tags_text, DataContainer.get_search_keywords())
         self.info_console.setText(f"<b>Tags</b>: {highlight_text}")
 
-    def on_load_complete(self):
-        self.load_count_label.setText(f"Loaded Image : {DataContainer.loaded_data_count}")
+    def _on_load_complete(self):
+        self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
         self.info_console.setText(f"Successfully loaded {DataContainer.loaded_data_count} images.")
 
-    def on_load_image_empty(self):
+    def _on_load_image_empty(self):
         self.info_console.setText("No loadable images in the selected path.")
         self.load_count_label.setText("Loaded Image : 0")
+
+    def _on_search_list_send2trash(self):
+        self.info_console.clear()
+        self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
+
+    def _on_select_list_save(self):
+        self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")

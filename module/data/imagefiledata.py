@@ -1,14 +1,17 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
+import os
 
 @dataclass
 class ImageFileData:
     file_path: str
     file_tags_text: str
     file_tags_list: Optional[List[str]] = field(default=None, init=False)
+    file_name: Optional[str] = field(default=None, init=False)
 
     def process_file_tags(self):
         self.file_tags_list = [tag.strip().lower() for tag in self.file_tags_text.split(",")]
+        self.file_name = os.path.basename(self.file_path)
 
     def __str__(self) -> str:
         return f"ImageFileData: {self.file_path}"

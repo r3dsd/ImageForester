@@ -29,6 +29,9 @@ class SearchBar(QWidget):
         if len(keywords) == 0:
             PopupFactory(self).create_popup("Warning", "Please input search keywords.").exec_()
             return
+        if DataContainer.loaded_data_count == 0:
+            PopupFactory(self).create_popup("Warning", "There is no loaded data.").exec_()
+            return
         DataContainer.set_search_keywords(keywords)
         result = SearchManager().search(keywords)
         GUISignalManager().emit_on_search_completed(result)

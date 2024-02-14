@@ -1,12 +1,71 @@
+from concurrent.futures import ThreadPoolExecutor
 import shutil
-from ..user_setting import UserSetting
-from ..r3util.r3path import get_defalut_save_path
-from ..data.data_container import DataContainer, ImageFileData
 import os
 import re
+from datetime import datetime
+
+from ..data.data_container import ImageFileData
+from ..user_setting import UserSetting
+from ..data.data_container import DataContainer
+from ..r3util.r3path import get_defalut_save_path
+
 from ..logger import get_logger
+import traceback
+
 
 logger = get_logger(__name__)
+
+def move_files(target_file_list: set[ImageFileData], save_folder_path: str):
+    try:
+        logger.debug(f'move files : ThreadPoolExecutor max_workers: 4')
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            for target_image_info in target_file_list:
+                executor.submit(move_file, target_image_info.file_path, save_folder_path)
+    except Exception as e:
+        logger.warning(f'Error: {e}\n{traceback.format_exc()}')
+
+def copy_files(target_file_list: set[ImageFileData], save_folder_path: str):
+    try:
+        logger.debug(f'copy files : ThreadPoolExecutor max_workers: 4')
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            for target_image_info in target_file_list:
+                executor.submit(copy_file, target_image_info.file_path, save_folder_path)
+    except Exception as e:
+        logger.warning(f'Error: {e}\n{traceback.format_exc()}')
+
+def copy_file(file_path, save_folder_path):
+    destination_file_path = generate_unique_file_path(file_path, save_folder_path, '_Copy')
+    shutil.copy(file_path, destination_file_path)
+    logger.info(f'Copy: {file_path} -> {destination_file_path}')
+
+def move_file(file_path, save_folder_path):
+    destination_file_path = generate_unique_file_path(file_path, save_folder_path, '_Move')
+    shutil.move(file_path, destination_file_path)
+    logger.info(f'Move: {file_path} -> {destination_file_path}')
+
+def fit_filename(original_filename, timestamp, extension, max_length=50) -> str:
+    """
+    return the filename that fits the maximum length if the filename is too long to fit the maximum length (50 characters)
+    """
+    base_length = len(timestamp) + len(extension) + 3
+    available_length = max_length - base_length
+
+    if len(original_filename) > available_length:
+        return f"{original_filename[:available_length - 3]}..."
+    else:
+        return original_filename
+
+def generate_unique_file_path(original_path, save_folder_path, savemode: str):
+    """
+    return the unique file path in the save folder
+    """
+    filename = os.path.basename(original_path)
+    file_name, file_extension = os.path.splitext(filename)
+    timestamp = datetime.now().strftime("_%y%m%d_%H%M%S")  # ex) _210101_123456
+
+    final_filename = fit_filename(file_name, timestamp, file_extension)
+    new_filename = f"{final_filename}{timestamp}{savemode}{file_extension}"
+    return os.path.join(save_folder_path, new_filename)
 
 def get_save_path(folder_name=None):
     save_folder_path = UserSetting.get('IMAGE_SAVE_DIR')
@@ -23,47 +82,3 @@ def get_save_path(folder_name=None):
         os.makedirs(save_folder_path)
     logger.debug(f'function get_save_path return: {save_folder_path}')
     return save_folder_path
-
-def copy_files(target_file_list: set[ImageFileData], save_folder_path: str):
-    try:
-        for target_image_info in target_file_list:
-            source_file_path: str = target_image_info.file_path
-            filename = os.path.basename(target_image_info.file_path)
-            file_name, file_extension = os.path.splitext(filename)
-            counter = 1
-            new_file_name = f"{file_name}_{counter}"
-            destination_file_path = os.path.join(save_folder_path, new_file_name + file_extension)
-
-            while os.path.exists(destination_file_path):
-                counter += 1
-                new_file_name = f"{file_name}_{counter}"
-                destination_file_path = os.path.join(save_folder_path, new_file_name + file_extension)
-
-            shutil.copy(source_file_path, destination_file_path)
-            logger.info(f'Copy: {source_file_path} -> {destination_file_path}')
-    except Exception as e:
-        logger.warning(f'Error: {e}')
-
-def move_files(target_file_list: set[ImageFileData], save_folder_path: str):
-    try:
-        for target_image_info in target_file_list:
-            source_file_path: str = target_image_info.file_path
-            filename = os.path.basename(target_image_info.file_path)
-            file_name, file_extension = os.path.splitext(filename)
-
-            # 파일 이름에 넘버링 추가
-            counter = 1
-            new_file_name = f"{file_name}_{counter}"
-            destination_file_path = os.path.join(save_folder_path, new_file_name + file_extension)
-
-            # 같은 이름이 있는 경우에만 넘버링 증가
-            while os.path.exists(destination_file_path):
-                counter += 1
-                new_file_name = f"{file_name}_{counter}"
-                destination_file_path = os.path.join(save_folder_path, new_file_name + file_extension)
-
-            shutil.move(source_file_path, destination_file_path)
-            print(f'파일 이동: {source_file_path} -> {destination_file_path}')
-        DataContainer.delete_loaded_data(target_file_list)
-    except Exception as e:
-        logger.warning(f'Error: {e}')

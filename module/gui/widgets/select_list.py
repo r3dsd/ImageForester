@@ -3,12 +3,13 @@ from PyQt5.QtCore import Qt
 
 from ...historymanager.r3historymanager import R3HistoryManager
 from ..guisignalmanager import GUISignalManager
+from ...file.filemanager import FileManager
+from ...data.data_container import DataContainer
+from ...data.imagefiledata import ImageFileData
 
 class SelectList(QWidget):
     def __init__(self):
         super().__init__()
-
-        GUISignalManager().list_count_changed.connect(self._update_count_label)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -30,6 +31,11 @@ class SelectList(QWidget):
         self.save_button.setDisabled(True)
         layout.addWidget(self.save_button)
 
+        self._initSignal()
+
+    def _initSignal(self):
+        GUISignalManager().list_count_changed.connect(self._update_count_label)
+        self.save_button.clicked.connect(self._save_files)
         self.list.itemClicked.connect(self._on_user_select)
         self.list.currentItemChanged.connect(self._on_user_select)
 
@@ -86,8 +92,23 @@ class SelectList(QWidget):
         R3HistoryManager.undo()
 
     def _update_count_label(self):
-        self.select_count_label.setText(f"Select Count: {len(self.list)}")
+        count = self.list.count()
+        self.select_count_label.setText(f"Select Count: {count}")
+        if count > 0:
+            self.save_button.setDisabled(False)
+        else:
+            self.save_button.setDisabled(True)
 
     def _on_user_select(self):
         if self.list.currentItem() is not None:
             GUISignalManager().emit_on_item_selection_updated(self.list.currentItem().data(Qt.UserRole))
+
+    def _save_files(self):
+        target_list: list[ImageFileData] = []
+        for index in range(self.list.count()):
+            target_list.append(self.list.item(index).data(Qt.UserRole))
+
+        FileManager.image_files_to_save_folder(target_list)
+        self.clear()
+        GUISignalManager().emit_on_select_list_save()
+        self._update_count_label()
