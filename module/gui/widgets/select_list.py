@@ -113,7 +113,7 @@ class SelectList(QWidget):
             GUISignalManager().emit_on_item_selection_updated(self.list.currentItem().data(Qt.UserRole))
 
     def _save_files(self):
-        if UserSetting.get('DONT_SHOW_TYPING_SAVE_FOLDER'):
+        if UserSetting.get('AUTO_GENERATE_FOLDER_NAME') == True:
             FILEMANAGER_CONFIG['SAVE_FILE_NAME'] = ''
         else:
             self._open_set_folder_name_popup()
@@ -127,7 +127,10 @@ class SelectList(QWidget):
         GUISignalManager().emit_on_select_list_save(Savemode(UserSetting.get('SAVE_MODE')))
         self._update_count_label()
 
-        PopupFactory(self.parent()).create_folder_open_popup(count=len(target_list)).exec_()
+        if not UserSetting.get('DISABLE_OPEN_FOLDER_POPUP'):
+            pass
+        else:
+            PopupFactory(self.parent()).create_folder_open_popup(count=len(target_list)).exec_()
 
     def _open_set_folder_name_popup(self):
         try:

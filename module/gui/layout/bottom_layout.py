@@ -3,15 +3,17 @@ from PyQt5.QtCore import Qt
 from ..widgets.settingdialog import SettingDialog
 from ...data.data_container import DataContainer
 from ..guisignalmanager import GUISignalManager
+from ..widgets.popupFactory import PopupFactory
 from ...data.imagefiledata import ImageFileData
 from ..widgets.path_selector import PathSelector
 from ...r3util.r3lib import HighlightingText
 from ...user_setting import Savemode
+from ...config import FILEMANAGER_CONFIG
 
 class BottomLayout(QBoxLayout):
     def __init__(self, mainwindow):
         super().__init__(QBoxLayout.TopToBottom)
-        self.mainwindow = mainwindow
+        self._mainwindow = mainwindow
 
         self._initUI()
         self._initsignal()
@@ -33,7 +35,7 @@ class BottomLayout(QBoxLayout):
         self.load_count_label.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         bar_layout.addWidget(self.load_count_label)
 
-        self.path_selector = PathSelector(self.mainwindow)
+        self.path_selector = PathSelector(self._mainwindow)
         bar_layout.addWidget(self.path_selector, 8)
 
         self.option_button = QPushButton("Short Cut Options")
@@ -53,7 +55,7 @@ class BottomLayout(QBoxLayout):
         GUISignalManager().on_select_list_save.connect(self._on_select_list_save)
 
     def _on_option_button_clicked(self):
-        SettingDialog(self.mainwindow)
+        SettingDialog(self._mainwindow)
 
     def _on_item_selection_updated(self, image_data: ImageFileData):
         highlight_text = HighlightingText(image_data.file_tags_text, DataContainer.get_search_keywords())
@@ -64,17 +66,16 @@ class BottomLayout(QBoxLayout):
         self.info_console.setText(f"Successfully loaded {DataContainer.loaded_data_count} images.")
 
     def _on_load_image_empty(self):
-        self.info_console.setText("No loadable images in the selected path.")
+        PopupFactory(self._mainwindow).create_popup("No loadable images in the selected path.")
         self.load_count_label.setText("Loaded Image : 0")
 
     def _on_search_list_send2trash(self):
-        self.info_console.clear()
+        self.info_console.setText(f"Successfully moved {DataContainer.loaded_data_count} images to the trash. <br> You can restore it in the trash.")
         self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
 
     def _on_select_list_save(self, mode: Savemode):
         if mode == Savemode.Copy:
-            self.info_console.clear()
-            
+            self.info_console.setText(f"Successfully copied {DataContainer.loaded_data_count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
         elif mode == Savemode.Move:
-            self.info_console.clear()
+            self.info_console.setText(f"Successfully moved {DataContainer.loaded_data_count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
             self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")

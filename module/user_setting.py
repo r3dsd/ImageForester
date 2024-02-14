@@ -22,8 +22,9 @@ class UserSetting:
         'IMAGE_SAVE_DIR' : r3path.get_defalut_save_path(), # Image save directory
         'SAVE_MODE' : 'Copy', # Save mode ('Copy', 'Move')
         'STEALTH_MODE' : False, # Stealth mode (True, False)
-        'DONT_SHOW_LOAD_CONFIRM' : False, # Auto load (True, False)
-        'DONT_SHOW_TYPING_SAVE_FOLDER' : False, # Auto typing save folder (True, False)
+        'AUTO_LOAD' : False, # Auto load (True, False) Default: False
+        'AUTO_GENERATE_FOLDER_NAME' : False, # Auto typing save folder (True, False) Default: False
+        'DISABLE_OPEN_FOLDER_POPUP' : False, # open folder popup show (True, False) Default: False
         'GUI_STYLE' : 'DARK', # GUI Style ('DARK', 'LIGHT')
         'FORCE_DELETE' : False, # Force delete (True, False) if true, in list, delete button will be send2trash, false, delete button will be only list delete
     }

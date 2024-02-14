@@ -53,7 +53,7 @@ class PathSelector(QWidget):
             GUISignalManager().emit_on_load_image_empty()
             return
         
-        if UserSetting.get('DONT_SHOW_LOAD_CONFIRM') == True:
+        if UserSetting.get('AUTO_LOAD') == True:
             logger.info("Auto Load Enabled. Loading Images...")
             self._image_load()
             return

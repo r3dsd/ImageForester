@@ -7,30 +7,34 @@ import winsound
 class PopupFactory:
     def __init__(self, parent):
         self.parent = parent
-        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
 
-    def create_popup(self, title, message, button_text="OK"):
-        return DefalutPopup(self.parent, title, message, button_text)
+    def create_popup(self, message, button_text="OK"):
+        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
+        return DefalutPopup(self.parent,message, button_text)
     
-    def create_yes_no_popup(self, title, message, yes_text="Yes", no_text="No"):
-        return YesNoPopup(self.parent, title, message, yes_text, no_text)
+    def create_yes_no_popup(self, message, yes_text="Yes", no_text="No"):
+        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
+        return YesNoPopup(self.parent, message, yes_text, no_text)
     
     def create_input_folder_name_popup(self):
         return InputFolderNamePopup(self.parent)
     
     def create_warning_popup(self, message):
+        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
         return self.create_popup("Warning", message)
     
     def create_load_confirm_popup(self, count):
+        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
         return LoadConfirmPopup(self.parent, count)
     
     def create_folder_open_popup(self, count):
+        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
         return FolderOpenPopup(self.parent, count)
     
 class DefalutPopup(QDialog):
-    def __init__(self, parent, title, message, button_text="OK"):
+    def __init__(self, parent, message, button_text="OK"):
         super().__init__(parent)
-        self.setWindowTitle(title)
+        self.setWindowTitle("Message")
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint | Qt.CustomizeWindowHint)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         layout = QVBoxLayout()
@@ -54,9 +58,9 @@ class DefalutPopup(QDialog):
         self.setFixedSize(self.sizeHint())
 
 class YesNoPopup(QDialog):
-    def __init__(self, parent, title, message, yes_text="Yes", no_text="No"):
+    def __init__(self, parent, message, yes_text="Yes", no_text="No"):
         super().__init__(parent)
-        self.setWindowTitle(title)
+        self.setWindowTitle("Message")
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint | Qt.CustomizeWindowHint)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         layout = QVBoxLayout()
@@ -127,7 +131,7 @@ class InputFolderNamePopup(QDialog):
     def accept(self):
         self.result = self.input.text()
         if self.checkbox.isChecked():
-            UserSetting.set("DONT_SHOW_TYPING_SAVE_FOLDER", True)
+            UserSetting.set("AUTO_GENERATE_FOLDER_NAME", True)
             UserSetting.save()
         super().accept()
 
@@ -166,15 +170,26 @@ class FolderOpenPopup(QDialog):
         button_layout.addWidget(ok_button)
         button_layout.addWidget(open_button)
 
+        under_layout = QHBoxLayout()
+        layout.addLayout(under_layout)
+        under_layout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.checkbox = QCheckBox("Don't show this again")
+        self.checkbox.setStyleSheet("QCheckBox::indicator { width: 10px; height: 10px; }")
+        self.checkbox.setMinimumHeight(20)
+        under_layout.addWidget(self.checkbox)
+
         self.setFixedSize(self.sizeHint())
 
         ok_button.setFocus()
 
     def accept(self):
+        if self.checkbox.isChecked():
+            UserSetting.set("DISABLE_OPEN_FOLDER_POPUP", True)
+            UserSetting.save()
         super().accept()
 
     def reject(self):
-        super().reject()
+        self.accept()
 
     def open_folder(self):
         import os
@@ -224,7 +239,7 @@ class LoadConfirmPopup(QDialog):
     def accept(self):
         self.result = True
         if self.checkbox.isChecked():
-            UserSetting.set("DONT_SHOW_LOAD_CONFIRM", True)
+            UserSetting.set("AUTO_LOAD", True)
             UserSetting.save()
         super().accept()
 
