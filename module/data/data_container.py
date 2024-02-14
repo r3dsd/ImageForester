@@ -30,6 +30,11 @@ class DataContainer:
         cls.loaded_data_count = len(data)
 
     @classmethod
+    def delete_loaded_data(cls, data: set[ImageFileData]) -> None:
+        cls._loaded_data.difference_update(data)
+        cls.loaded_data_count = len(cls._loaded_data)
+
+    @classmethod
     def get_searched_data(cls) -> set[ImageFileData]:
         return cls._searched_data
     

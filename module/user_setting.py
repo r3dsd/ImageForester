@@ -1,6 +1,7 @@
 from .r3util import r3path
 import json
 from .logger import get_logger
+from enum import Enum
 
 logger = get_logger(__name__)
 
@@ -9,7 +10,7 @@ class UserSetting:
     SETTING = {}
     DEFALUT_SETTING = {
         'IMAGE_SAVE_DIR' : r3path.get_defalut_save_path(), # Image save directory
-        'SAVE_MODE' : 'Copy', # Save mode (Copy, Move)
+        'SAVE_MODE' : 'Copy', # Save mode ('Copy', 'Move')
         'STEALTH_MODE' : False, # Stealth mode (True, False)
         'DONT_SHOW_LOAD_CONFIRM' : False, # Auto load (True, False)
         'GUI_STYLE' : 'DARK', # GUI Style ('DARK', 'LIGHT')
