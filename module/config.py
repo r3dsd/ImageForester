@@ -1,5 +1,9 @@
 # Module configuration file
 
+FILEMANAGER_CONFIG = {
+    'SAVE_FILE_NAME' : '',
+}
+
 TAGGER_CONFIG ={
     'IMAGE_TAGGER_INPUT_DIR' : '',
     'IMAGE_TAGGER_CONFIDENCE_THRESHOLD' : 0.5,

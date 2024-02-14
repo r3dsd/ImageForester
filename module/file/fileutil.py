@@ -8,6 +8,7 @@ from ..data.data_container import ImageFileData
 from ..user_setting import UserSetting
 from ..data.data_container import DataContainer
 from ..r3util.r3path import get_defalut_save_path
+from ..config import FILEMANAGER_CONFIG
 
 from ..logger import get_logger
 import traceback
@@ -67,18 +68,29 @@ def generate_unique_file_path(original_path, save_folder_path, savemode: str):
     new_filename = f"{final_filename}{timestamp}{savemode}{file_extension}"
     return os.path.join(save_folder_path, new_filename)
 
-def get_save_path(folder_name=None):
-    save_folder_path = UserSetting.get('IMAGE_SAVE_DIR')
-    if not save_folder_path:
-        save_folder_path = get_defalut_save_path()
-    if folder_name:
-        save_folder_path = os.path.join(save_folder_path, folder_name)
+def get_save_path():
+    save_folder_name = FILEMANAGER_CONFIG['SAVE_FILE_NAME']
+    base_save_folder_path = UserSetting.get('IMAGE_SAVE_DIR')
+    if not base_save_folder_path:
+        base_save_folder_path = get_defalut_save_path()
+
+    if save_folder_name != '':
+        base_save_folder_path = os.path.join(base_save_folder_path, save_folder_name)
     else:
-        search_keyword = DataContainer.get_search_keywords()
-        string = '_'.join(search_keyword)
-        string = re.sub(r'[\\/:*?"<>|~!]', '', string)
-        save_folder_path = os.path.join(save_folder_path, string)
-    if not os.path.exists(save_folder_path):
-        os.makedirs(save_folder_path)
-    logger.debug(f'function get_save_path return: {save_folder_path}')
-    return save_folder_path
+        string = create_folder_name_using_search_keyword()
+        base_save_folder_path = os.path.join(base_save_folder_path, string)
+
+    logger.info(f'Set Save folder path: {base_save_folder_path}')
+
+    if not os.path.exists(base_save_folder_path):
+        os.makedirs(base_save_folder_path)
+    else:
+        logger.info(f'folder already exists: {base_save_folder_path}')
+    logger.debug(f'function get_save_path return: {base_save_folder_path}')
+    return base_save_folder_path
+
+def create_folder_name_using_search_keyword():
+    search_keyword = DataContainer.get_search_keywords()
+    string = '_'.join(search_keyword)
+    string = re.sub(r'[\\/:*?"<>|~!]', '', string)
+    return string

@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QMenuBar, QAction
 from .settingdialog import SettingDialog
+from ..widgets.popupFactory import PopupFactory
 
 class MyMenuBar(QMenuBar):
     def __init__(self, parent=None):
