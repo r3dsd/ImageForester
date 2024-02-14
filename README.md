@@ -6,3 +6,11 @@
 # ScreenShot
 
 ![screencap_2024](https://github.com/r3dsd/ImageForester/assets/158823274/5ca451b5-1a05-44d0-b94e-23d97ad2f5cf)
+
+# Thanks To
+
+imagetagger.py
+- https://github.com/Inupedia/anime-character-image-preprocessing
+
+stealth_pnginfo.py
+- https://github.com/neggles/sd-webui-stealth-pnginfo/
