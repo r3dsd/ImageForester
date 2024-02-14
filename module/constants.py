@@ -88,6 +88,11 @@ GUI_STYLE_SHEET = {
             QMenu::item::selected {
                 background-color: #111;
             }
+            QToolTip {
+                background-color: #444;
+                color: #FFF;
+                border: 1px solid #FFF;
+            }
         """,
     'LIGHT': """
             QWidget{
@@ -166,6 +171,11 @@ GUI_STYLE_SHEET = {
             QMenu::item::selected {
                 background-color: #EEE;
             }
+            QToolTip {
+                background-color: #EEE;
+                color: #333;
+                border: 1px solid #333;
+            }
         """,
     'LIGHT_GREEN': """
             QWidget{
@@ -243,6 +253,11 @@ GUI_STYLE_SHEET = {
             }
             QMenu::item::selected {
                 background-color: #A2D9CE;
+            }
+            QToolTip {
+                background-color: #A2D9CE;
+                color: #333;
+                border: 1px solid #333;
             }
     """
 }

@@ -27,20 +27,22 @@ class ImageTaggerWindow(QDialog):
         list_layout = QVBoxLayout()
         middle_layout.addLayout(list_layout)
 
-        self.message_label = QLabel("No Description File List")
-        self.message_label.setAlignment(Qt.AlignHCenter)
-        self.message_label.setMinimumSize(300, 25)
-        list_layout.addWidget(self.message_label)
+        self.list_name_label = QLabel("No Description File List")
+        self.list_name_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        self.list_name_label.setMinimumSize(300, 25)
+        self.list_name_label.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        list_layout.addWidget(self.list_name_label)
 
         self.list = QListWidget()
         self.list.setObjectName("No Description File List")
-        self.list.setMinimumHeight(300)
-        self.list.setMinimumWidth(200)
+        self.list.setMinimumSize(300, 400)
+        self.list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         list_layout.addWidget(self.list)
 
         self.no_data_label = QLabel("No Description File not found")
-        self.no_data_label.setAlignment(Qt.AlignCenter)
-        self.no_data_label.setMinimumHeight(300)
+        self.no_data_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        self.no_data_label.setMinimumSize(300, 400)
+        self.no_data_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         list_layout.addWidget(self.no_data_label)
 
         list_button_layout = QHBoxLayout()
@@ -58,7 +60,7 @@ class ImageTaggerWindow(QDialog):
 
         self.preview_image = QLabel()
         self.preview_image.setAlignment(Qt.AlignCenter)
-        self.preview_image.setMinimumSize(256, 256)
+        self.preview_image.setMinimumSize(512, 512)
         self.preview_image.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         middle_layout.addWidget(self.preview_image)
 
@@ -77,7 +79,7 @@ class ImageTaggerWindow(QDialog):
             self._update_no_data_ui()
 
     def _update_has_data_ui(self):
-        self.message_label.show()
+        self.list_name_label.show()
         self.list.show()
         self.preview_image.show()
         self.no_data_label.hide()
@@ -87,7 +89,7 @@ class ImageTaggerWindow(QDialog):
         self._button_enable()
 
     def _update_no_data_ui(self):
-        self.message_label.show()
+        self.list_name_label.show()
         self.list.hide()
         self.preview_image.show()
         self.no_data_label.show()
@@ -130,7 +132,7 @@ class ImageTaggerWindow(QDialog):
         DataContainer.clear_load_failed_data()
 
     def _all_hide(self):
-        self.message_label.hide()
+        self.list_name_label.hide()
         self.list.hide()
         self.no_data_label.hide()
         self.preview_image.hide()
