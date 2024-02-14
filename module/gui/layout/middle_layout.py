@@ -36,10 +36,13 @@ class MiddleLayout(QBoxLayout):
 
         GUISignalManager().on_item_selection_updated.connect(self._on_item_selection_updated)
         GUISignalManager().on_search_list_send2trash.connect(self.clear_image_viewer)
-        GUISignalManager().on_select_list_save.connect(self.clear_image_viewer)
+        GUISignalManager().on_select_list_save.connect(self._on_select_list_save)
 
     def _on_item_selection_updated(self, image_data: ImageFileData):
         self.set_image_viewer(image_data.file_path)
+
+    def _on_select_list_save(self, mode):
+        self.clear_image_viewer()
 
     def set_image_viewer(self, image_path: str):
         normpath = os.path.normpath(image_path)

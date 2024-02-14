@@ -1,8 +1,19 @@
-from .r3util import r3path
+from enum import Enum, auto
 import json
 from .logger import get_logger
+from .r3util import r3path
 
 logger = get_logger(__name__)
+
+class Savemode(Enum):
+    Copy = "Copy"
+    Move = "Move"
+
+    def __str__(self):
+        return self.name
+    
+    def __repr__(self):
+        return self.name
 
 # UserSetting
 class UserSetting:
@@ -12,6 +23,7 @@ class UserSetting:
         'SAVE_MODE' : 'Copy', # Save mode ('Copy', 'Move')
         'STEALTH_MODE' : False, # Stealth mode (True, False)
         'DONT_SHOW_LOAD_CONFIRM' : False, # Auto load (True, False)
+        'DONT_SHOW_TYPING_SAVE_FOLDER' : False, # Auto typing save folder (True, False)
         'GUI_STYLE' : 'DARK', # GUI Style ('DARK', 'LIGHT')
         'FORCE_DELETE' : False, # Force delete (True, False) if true, in list, delete button will be send2trash, false, delete button will be only list delete
     }
@@ -62,8 +74,9 @@ class UserSetting:
         try:
             if key == 'SAVE_MODE':
                 assert cls.SETTING[key] == 'Copy' or cls.SETTING[key] == 'Move', f'UserSetting : {key} is not in UserSetting'
+                return Savemode[cls.SETTING[key]]
             elif key == 'GUI_STYLE':
-                assert cls.SETTING[key] == 'DARK' or cls.SETTING[key] == 'LIGHT' or cls.SETTING[key], f'UserSetting : {key} is not in UserSetting'
+                assert cls.SETTING[key] == 'DARK' or cls.SETTING[key] == 'LIGHT' or cls.SETTING[key] == 'LIGHT_GREEN', f'UserSetting : {key} is not in UserSetting'
             return cls.SETTING[key]
         except:
             logger.error(f"UserSetting : {key} is not in UserSetting")

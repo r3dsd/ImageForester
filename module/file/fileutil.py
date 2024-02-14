@@ -69,6 +69,9 @@ def generate_unique_file_path(original_path, save_folder_path, savemode: str):
     return os.path.join(save_folder_path, new_filename)
 
 def get_save_path():
+    """
+    return the save folder path
+    """
     save_folder_name = FILEMANAGER_CONFIG['SAVE_FILE_NAME']
     base_save_folder_path = UserSetting.get('IMAGE_SAVE_DIR')
     if not base_save_folder_path:
@@ -87,6 +90,7 @@ def get_save_path():
     else:
         logger.info(f'folder already exists: {base_save_folder_path}')
     logger.debug(f'function get_save_path return: {base_save_folder_path}')
+    FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH'] = base_save_folder_path
     return base_save_folder_path
 
 def create_folder_name_using_search_keyword():

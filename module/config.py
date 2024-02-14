@@ -2,6 +2,7 @@
 
 FILEMANAGER_CONFIG = {
     'SAVE_FILE_NAME' : '',
+    'FINAL_SAVE_FOLDER_PATH' : ''
 }
 
 TAGGER_CONFIG ={

@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFrame, QSizePolicy, QSpacerItem, QCheckBox, QLineEdit
 from PyQt5.QtCore import Qt
 from ...user_setting import UserSetting
+from ...config import FILEMANAGER_CONFIG
 import winsound
 
 class PopupFactory:
@@ -22,6 +23,9 @@ class PopupFactory:
     
     def create_load_confirm_popup(self, count):
         return LoadConfirmPopup(self.parent, count)
+    
+    def create_folder_open_popup(self, count):
+        return FolderOpenPopup(self.parent, count)
     
 class DefalutPopup(QDialog):
     def __init__(self, parent, title, message, button_text="OK"):
@@ -107,16 +111,75 @@ class InputFolderNamePopup(QDialog):
         button_layout = QHBoxLayout()
         layout.addLayout(button_layout)
         ok_button = QPushButton("OK")
-        ok_button.clicked.connect(self.accept)
         button_layout.addWidget(ok_button)
+
+        under_layout = QHBoxLayout()
+        layout.addLayout(under_layout)
+        under_layout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.checkbox = QCheckBox("Don't show this again")
+        self.checkbox.setStyleSheet("QCheckBox::indicator { width: 10px; height: 10px; }")
+        self.checkbox.setMinimumHeight(20)
+        under_layout.addWidget(self.checkbox)
+
+        ok_button.clicked.connect(self.accept)
+        self.input.returnPressed.connect(self.accept)
 
     def accept(self):
         self.result = self.input.text()
+        if self.checkbox.isChecked():
+            UserSetting.set("DONT_SHOW_TYPING_SAVE_FOLDER", True)
+            UserSetting.save()
         super().accept()
 
     def reject(self):
         self.result = ''
         super().reject()
+
+class FolderOpenPopup(QDialog):
+    def __init__(self, parent=None, count=0):
+        super().__init__(parent)
+        self.setWindowTitle("Successfully saved")
+        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint | Qt.CustomizeWindowHint)
+
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        row = QHBoxLayout()
+        layout.addLayout(row)
+        label = QLabel(f"Successfully {count} images saved.\n do you want to open the folder?")
+        row.addWidget(label)
+
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(line)
+
+        button_layout = QHBoxLayout()
+        layout.addLayout(button_layout)
+        ok_button = QPushButton("It's OK!")
+        ok_button.clicked.connect(self.accept)
+
+        open_button = QPushButton("Open folder")
+        open_button.clicked.connect(self.open_folder)
+
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(open_button)
+
+        self.setFixedSize(self.sizeHint())
+
+        ok_button.setFocus()
+
+    def accept(self):
+        super().accept()
+
+    def reject(self):
+        super().reject()
+
+    def open_folder(self):
+        import os
+        os.startfile(FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH'])
+        super().accept()
 
 class LoadConfirmPopup(QDialog):
     def __init__(self, parent, count):

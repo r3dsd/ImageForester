@@ -9,6 +9,8 @@ from ..guisignalmanager import GUISignalManager
 from ...file.filemanager import FileManager
 from ...data.imagefiledata import ImageFileData
 from ...r3util.r3lib import check_save_folder_name
+from ...user_setting import Savemode, UserSetting
+from ...config import FILEMANAGER_CONFIG
 
 from ...logger import get_logger
 import traceback
@@ -82,7 +84,6 @@ class SelectList(QWidget):
             else:
                 QListWidget.keyPressEvent(self.list, event)
                 return
-
         GUISignalManager().emit_list_count_changed()
 
     def _delete(self):
@@ -112,7 +113,10 @@ class SelectList(QWidget):
             GUISignalManager().emit_on_item_selection_updated(self.list.currentItem().data(Qt.UserRole))
 
     def _save_files(self):
-        self._open_set_folder_name_popup()
+        if UserSetting.get('DONT_SHOW_TYPING_SAVE_FOLDER'):
+            FILEMANAGER_CONFIG['SAVE_FILE_NAME'] = ''
+        else:
+            self._open_set_folder_name_popup()
 
         target_list: list[ImageFileData] = []
         for index in range(self.list.count()):
@@ -120,17 +124,19 @@ class SelectList(QWidget):
 
         FileManager.image_files_to_save_folder(target_list)
         self.clear()
-        GUISignalManager().emit_on_select_list_save()
+        GUISignalManager().emit_on_select_list_save(Savemode(UserSetting.get('SAVE_MODE')))
         self._update_count_label()
+
+        PopupFactory(self.parent()).create_folder_open_popup(count=len(target_list)).exec_()
 
     def _open_set_folder_name_popup(self):
         try:
+            FILEMANAGER_CONFIG['SAVE_FILE_NAME'] = ''
             while True:
                 popup = PopupFactory(self.parent()).create_input_folder_name_popup()
                 popup.exec_()
-                from ...config import FILEMANAGER_CONFIG
                 folder_name = popup.result
-                if folder_name is '':
+                if folder_name == '':
                     FILEMANAGER_CONFIG['SAVE_FILE_NAME'] = ''
                     logger.info(f"use default folder name: {FILEMANAGER_CONFIG['SAVE_FILE_NAME']}")
                     break

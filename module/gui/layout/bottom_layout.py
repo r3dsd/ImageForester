@@ -6,6 +6,7 @@ from ..guisignalmanager import GUISignalManager
 from ...data.imagefiledata import ImageFileData
 from ..widgets.path_selector import PathSelector
 from ...r3util.r3lib import HighlightingText
+from ...user_setting import Savemode
 
 class BottomLayout(QBoxLayout):
     def __init__(self, mainwindow):
@@ -70,5 +71,10 @@ class BottomLayout(QBoxLayout):
         self.info_console.clear()
         self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
 
-    def _on_select_list_save(self):
-        self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
+    def _on_select_list_save(self, mode: Savemode):
+        if mode == Savemode.Copy:
+            self.info_console.clear()
+            
+        elif mode == Savemode.Move:
+            self.info_console.clear()
+            self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
