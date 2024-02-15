@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QLabel, QWidget, QVBoxLayout, QPushButton
 from PyQt5.QtCore import Qt
 
+from .components.myqlistwidget import MyQListWidget
 from ...historymanager.r3historymanager import R3HistoryManager
 from ..guisignalmanager import GUISignalManager
 from ...data.imagefiledata import ImageFileData
@@ -26,7 +27,7 @@ class SearchList(QWidget):
         self.search_count_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         layout.addWidget(self.search_count_label)
 
-        self.list: QListWidget = QListWidget()
+        self.list: QListWidget = MyQListWidget()
         self.list.keyPressEvent = self.keyPressEvent
         self.list.setObjectName("SearchList")
         layout.addWidget(self.list)

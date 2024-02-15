@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QLabel, QWidget, QVBoxLayout, QPushButton
 from PyQt5.QtCore import Qt
 
+from .components.myqlistwidget import MyQListWidget
 from ..factory.DialogFactory import DialogFactory
-
 from ...historymanager.r3historymanager import R3HistoryManager
 from ..guisignalmanager import GUISignalManager
 from ...file_managemant.filemanager import FileManager
@@ -31,7 +31,7 @@ class SelectList(QWidget):
         self.select_count_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         layout.addWidget(self.select_count_label)
 
-        self.list: QListWidget = QListWidget()
+        self.list: QListWidget = MyQListWidget()
         self.list.keyPressEvent = self.keyPressEvent
         self.list.setObjectName("SelectList")
         layout.addWidget(self.list)

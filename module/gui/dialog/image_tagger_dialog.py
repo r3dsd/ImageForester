@@ -7,6 +7,7 @@ from ...imagetagger.imagetagger import ImageTagger, add_tag
 from ..guisignalmanager import GUISignalManager
 from ..worker import ExtendedWorker
 from ..widgets.image_viewer import ImageViewer
+from ..widgets.components.myqlistwidget import MyQListWidget
 
 from ...logger import get_logger
 
@@ -34,7 +35,7 @@ class ImageTaggerDialog(QDialog):
         self.list_name_label.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         list_layout.addWidget(self.list_name_label)
 
-        self.list = QListWidget()
+        self.list = MyQListWidget()
         self.list.setObjectName("No Description File List")
         self.list.setMinimumSize(300, 400)
         self.list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
