@@ -1,8 +1,7 @@
 from PIL import Image
 import gzip
-
-
 # from https://github.com/neggles/sd-webui-stealth-pnginfo/
+
 def read_info_from_image_stealth(image):
     # trying to read stealth pnginfo
     width, height = image.size
