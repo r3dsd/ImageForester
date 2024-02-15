@@ -16,6 +16,7 @@ def get_program_start_path() -> str:
         # using python3 interpreter
         util_path = os.path.dirname(os.path.abspath(__file__))
         main_path = os.path.abspath(os.path.join(util_path, '..', '..'))
+    main_path = process_path(main_path)
     logger.debug(f"main_path: {main_path}")
     return main_path
 
@@ -23,12 +24,14 @@ def get_defalut_save_path() -> str:
     """
     return the default save path
     """
-    return os.path.join(get_program_start_path(), "ImageForestResult")
+    path = os.path.join(get_program_start_path(), "ImageForestResult")
+    return path
 
 def check_path_exists(path: str) -> bool:
     """
     return the path exists
     """
+    path = process_path(path)
     return os.path.exists(path)
 
 def get_resource_path(relative_path: str):

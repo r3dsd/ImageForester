@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QObject, pyqtSignal
 from ..data.imagefiledata import ImageFileData
 
-from ..user_setting import Savemode
+from ..user_setting import SaveModeEnum
 
 # Special thanks to https://stackoverflow.com/questions/59459770/receiving-pyqtsignal-from-singleton
 class Singleton(type(QObject), type):
@@ -21,7 +21,7 @@ class GUISignalManager(QObject, metaclass=Singleton):
     on_item_selection_updated = pyqtSignal(ImageFileData)
     on_load_image_empty = pyqtSignal()
     on_gui_style_changed = pyqtSignal(str)
-    on_select_list_save = pyqtSignal(Savemode)
+    on_select_list_save = pyqtSignal(SaveModeEnum)
     on_search_list_send2trash = pyqtSignal()
     on_tag_added = pyqtSignal(str)
     on_auto_tagging_finished = pyqtSignal(int)
@@ -51,7 +51,7 @@ class GUISignalManager(QObject, metaclass=Singleton):
     def emit_on_gui_style_changed(self, style):
         self.on_gui_style_changed.emit(style)
 
-    def emit_on_select_list_save(self, mode: Savemode):
+    def emit_on_select_list_save(self, mode: SaveModeEnum):
         self.on_select_list_save.emit(mode)
 
     def emit_on_search_list_send2trash(self, count: int):

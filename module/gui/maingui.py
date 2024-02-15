@@ -34,7 +34,7 @@ class MainGui:
         self._mainwindow.setWindowTitle(f"{PROGRAM_NAME} {PROGRAM_VERSION}")
         self._mainwindow.setWindowIcon(QIcon(get_resource_path('icon.ico')))
         self._mainwindow.setGeometry(100, 100, 1280, 720)
-        self._mainwindow.setStyleSheet(GUI_STYLE_SHEET[UserSetting.get('GUI_STYLE')])
+        self._mainwindow.setStyleSheet(GUI_STYLE_SHEET[UserSetting.get('GUI_STYLE').name])
 
         self.menubar = MyMenuBar(self._mainwindow)
         self._mainwindow.setMenuBar(self.menubar)

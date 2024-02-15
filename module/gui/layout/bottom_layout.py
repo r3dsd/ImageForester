@@ -7,7 +7,7 @@ from ..factory.DialogFactory import DialogFactory
 from ...data.imagefiledata import ImageFileData
 from ..widgets.path_selector import PathSelector
 from ...r3util.r3lib import HighlightingText
-from ...user_setting import Savemode
+from ...user_setting import SaveModeEnum
 from ...config import FILEMANAGER_CONFIG
 
 class BottomLayout(QBoxLayout):
@@ -75,10 +75,10 @@ class BottomLayout(QBoxLayout):
         self.info_console.setText(f"Successfully moved {count} images to the trash. <br> You can restore it in the trash. <br> Loaded {DataContainer.loaded_data_count} images.")
         self._update_count_label()
 
-    def _on_select_list_save(self, mode: Savemode):
-        if mode == Savemode.Copy:
+    def _on_select_list_save(self, mode: SaveModeEnum):
+        if mode == SaveModeEnum.COPY:
             self.info_console.setText(f"Successfully copied {DataContainer.loaded_data_count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
-        elif mode == Savemode.Move:
+        elif mode == SaveModeEnum.MOVE:
             self.info_console.setText(f"Successfully moved {DataContainer.loaded_data_count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
             self._update_count_label()
 

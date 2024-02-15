@@ -8,7 +8,7 @@ from ..guisignalmanager import GUISignalManager
 from ...file_managemant.filemanager import FileManager
 from ...data.imagefiledata import ImageFileData
 from ...r3util.r3lib import check_save_folder_name
-from ...user_setting import Savemode, UserSetting
+from ...user_setting import SaveModeEnum, UserSetting
 from ...config import FILEMANAGER_CONFIG
 from ..factory.DialogFactory import DialogFactory
 
@@ -137,7 +137,7 @@ class SelectList(QWidget):
 
         FileManager.image_files_to_save_folder(target_list)
         self.clear()
-        GUISignalManager().emit_on_select_list_save(Savemode(UserSetting.get('SAVE_MODE')))
+        GUISignalManager().emit_on_select_list_save(UserSetting.get('SAVE_MODE'))
         self._update_count_label()
 
         if not UserSetting.get('DISABLE_OPEN_FOLDER_POPUP'):

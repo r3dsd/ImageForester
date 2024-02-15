@@ -1,31 +1,49 @@
 from enum import Enum, auto
 import json
+
 from .logger import get_logger
 from .r3util import r3path
 
 logger = get_logger(__name__)
 
-class Savemode(Enum):
-    Copy = "Copy"
-    Move = "Move"
+class SaveModeEnum(Enum):
+    COPY = auto()
+    MOVE = auto()
+    def get_display_str(self) -> str:
+        if self == self.COPY:
+            return 'Copy mode'
+        elif self == self.MOVE:
+            return 'Move mode'
+    @staticmethod
+    def get_all_enum() -> list[str]:
+        return list(SaveModeEnum.__members__.values())
 
-    def __str__(self):
-        return self.name
-    
-    def __repr__(self):
-        return self.name
+class GUIModeEnum(Enum):
+    DARK = auto()
+    LIGHT = auto()
+    LIGHT_GREEN = auto()
+    def get_display_str(self) -> str:
+        if self == self.DARK:
+            return 'Dark Theme'
+        elif self == self.LIGHT:
+            return 'Light Theme'
+        elif self == self.LIGHT_GREEN:
+            return 'Light Green Theme'
+    @staticmethod
+    def get_all_enum() -> list[str]:
+        return list(GUIModeEnum.__members__.values())
 
 # UserSetting
 class UserSetting:
     SETTING = {}
-    DEFALUT_SETTING = {
-        'IMAGE_SAVE_DIR' : r3path.get_defalut_save_path(), # Image save directory
-        'SAVE_MODE' : 'Copy', # Save mode ('Copy', 'Move')
+    DEFAULT_SETTING = {
+        'SAVE_PATH' : r3path.get_defalut_save_path(), # Image save directory
+        'SAVE_MODE' : 'COPY', # Save mode ('COPY', 'MOVE') Default: 'COPY'
         'STEALTH_MODE' : False, # Stealth mode (True, False)
         'AUTO_LOAD' : False, # Auto load (True, False) Default: False
         'AUTO_GENERATE_FOLDER_NAME' : False, # Auto typing save folder (True, False) Default: False
         'DISABLE_OPEN_FOLDER_POPUP' : False, # open folder popup show (True, False) Default: False
-        'GUI_STYLE' : 'DARK', # GUI Style ('DARK', 'LIGHT')
+        'GUI_STYLE' : 'DARK', # GUI Style ('DARK', 'LIGHT', 'LIGHT_GREEN') Default: 'DARK'
         'FORCE_DELETE' : False, # Force delete (True, False) Default: False
         'AUTO_DELETE_AFTER_TAGGING' : False, # Auto delete after tagging (True, False) Default: False
     }
@@ -37,17 +55,17 @@ class UserSetting:
                 with open('User_Settings.json', 'r') as f:
                     cls.SETTING = json.load(f)
 
-                missing_keys = list(set(cls.DEFALUT_SETTING.keys()) - set(cls.SETTING.keys()))
+                missing_keys = list(set(cls.DEFAULT_SETTING.keys()) - set(cls.SETTING.keys()))
                 if missing_keys:
                     logger.info(f'User_Settings.json is missing options: {missing_keys} ... updating...')
                     for key in missing_keys:
-                        cls.SETTING[key] = cls.DEFALUT_SETTING[key]
+                        cls.SETTING[key] = cls.DEFAULT_SETTING[key]
                     with open('User_Settings.json', 'w') as f:
                         json.dump(cls.SETTING, f, indent=4)
                     logger.info('User_Settings.json updated...')
             else:
                 logger.info('User_Settings.json does not exists... creating new User_Settings.json...')
-                cls.SETTING = cls.DEFALUT_SETTING
+                cls.SETTING = cls.DEFAULT_SETTING
                 with open('User_Settings.json', 'w') as f:
                     json.dump(cls.SETTING, f, indent=4)
 
@@ -56,7 +74,7 @@ class UserSetting:
                 logger.info(f"UserSetting : [{key}] : {value}")
         except Exception as e:
             logger.warning(f'Error: {e}')
-            cls.SETTING = cls.DEFALUT_SETTING
+            cls.SETTING = cls.DEFAULT_SETTING
             cls.save()
             
     @classmethod
@@ -68,21 +86,24 @@ class UserSetting:
         except Exception as e:
             logger.warning(f'Error: {e}')
             logger.info("User_Settings.json is missing... creating defalut User_Settings.json...")
-            cls.SETTING = cls.DEFALUT_SETTING
+            cls.SETTING = cls.DEFAULT_SETTING
             cls.save()
 
     @classmethod
-    def get(cls, key: str) -> str | bool:
+    def get(cls, key: str) -> str | bool | Enum:
         try:
+            value = cls.SETTING.get(key, cls.DEFAULT_SETTING[key])
             if key == 'SAVE_MODE':
-                assert cls.SETTING[key] == 'Copy' or cls.SETTING[key] == 'Move', f'UserSetting : {key} is not in UserSetting'
-                return Savemode[cls.SETTING[key]]
+                return SaveModeEnum[value]
             elif key == 'GUI_STYLE':
-                assert cls.SETTING[key] == 'DARK' or cls.SETTING[key] == 'LIGHT' or cls.SETTING[key] == 'LIGHT_GREEN', f'UserSetting : {key} is not in UserSetting'
-            return cls.SETTING[key]
-        except:
-            logger.error(f"UserSetting : {key} is not in UserSetting")
-            RuntimeError(f"UserSetting : {key} is not in UserSetting")
+                return GUIModeEnum[value]
+            return value
+        except KeyError as e:
+            logger.error(f"KeyError in UserSetting.get: '{key}' is not a valid setting. Default setting will be used.")
+            return cls.get_default_setting(key)
+        except AttributeError as e:
+            logger.error(f"AttributeError in UserSetting.get: '{value}' is not a valid value for '{key}'. Using default value.")
+
     
     @classmethod
     def set(cls, key: str, value: str) -> None:
@@ -92,3 +113,13 @@ class UserSetting:
         else:
             logger.error(f"UserSetting : {key} is not in UserSetting")
             raise RuntimeError(f"UserSetting : {key} is not in UserSetting")
+        
+    @classmethod
+    def get_default_setting(cls, key: str) -> str | bool | Enum:
+        default_value = cls.DEFAULT_SETTING[key]
+        logger.info(f"UserSetting : Using Default Setting [{default_value}]")
+        if key == 'SAVE_MODE':
+            return SaveModeEnum[default_value]
+        elif key == 'GUI_STYLE':
+            return GUIModeEnum[default_value]
+        return default_value

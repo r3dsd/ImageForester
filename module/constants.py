@@ -6,11 +6,6 @@ PROGRAM_AUTHOR = 'r3dsd'
 
 IMAGE_FORMATS = ('.png')
 
-class GUI_STYLE(Enum):
-    DARK = 0
-    LIGHT = 1
-    LIGHT_GREEN = 2
-
 GUI_STYLE_SHEET = {
     'DARK': """
             QWidget{

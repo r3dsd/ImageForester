@@ -8,6 +8,7 @@ logger = get_logger(__name__)
 class MyMenuBar(QMenuBar):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._mainwindow = parent
         self.image_tagger_window: ImageTaggerDialog = None
         self._initUI()
 
@@ -29,7 +30,7 @@ class MyMenuBar(QMenuBar):
         toolsMenu.addAction(settingAction)
 
     def openSettingDialog(self):
-        DialogFactory(self.parent()).create_setting_dialog(full_setting=True)
+        DialogFactory(self._mainwindow).create_setting_dialog(full_setting=True)
 
     def openImageTaggerwindow(self):
         if self.image_tagger_window and not self.image_tagger_window.isVisible():
