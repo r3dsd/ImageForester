@@ -15,7 +15,7 @@ class Singleton(type(QObject), type):
         return cls._instance
 
 class GUISignalManager(QObject, metaclass=Singleton):
-    list_count_changed = pyqtSignal()
+    on_list_count_changed = pyqtSignal()
     on_search_complete = pyqtSignal(object)
     on_load_complete = pyqtSignal()
     on_item_selection_updated = pyqtSignal(ImageFileData)
@@ -23,6 +23,9 @@ class GUISignalManager(QObject, metaclass=Singleton):
     on_gui_style_changed = pyqtSignal(str)
     on_select_list_save = pyqtSignal(Savemode)
     on_search_list_send2trash = pyqtSignal()
+    on_tag_added = pyqtSignal(str)
+    on_auto_tagging_finished = pyqtSignal(int)
+
     _instance = None
 
     def __new__(cls):
@@ -30,8 +33,8 @@ class GUISignalManager(QObject, metaclass=Singleton):
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def emit_list_count_changed(self):
-        self.list_count_changed.emit()
+    def emit_on_list_count_changed(self):
+        self.on_list_count_changed.emit()
 
     def emit_on_search_completed(self, data):
         self.on_search_complete.emit(data)
@@ -51,5 +54,11 @@ class GUISignalManager(QObject, metaclass=Singleton):
     def emit_on_select_list_save(self, mode: Savemode):
         self.on_select_list_save.emit(mode)
 
-    def emit_on_search_list_send2trash(self):
-        self.on_search_list_send2trash.emit()
+    def emit_on_search_list_send2trash(self, count: int):
+        self.on_search_list_send2trash.emit(count)
+
+    def emit_on_tag_added(self, path: str):
+        self.on_tag_added.emit(path)
+
+    def emit_on_auto_tagging_finished(self, count: int):
+        self.on_auto_tagging_finished.emit(count)

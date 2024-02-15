@@ -4,6 +4,7 @@ from ..guisignalmanager import GUISignalManager
 from ...data.data_container import DataContainer
 from ...data.imagefiledata import ImageFileDataFactory
 from ...imagetagger.imagetagger import ImageTagger, add_tag
+from ..guisignalmanager import GUISignalManager
 from ..worker import ExtendedWorker
 from ..widgets.image_viewer import ImageViewer
 
@@ -101,23 +102,36 @@ class ImageTaggerDialog(QDialog):
         logger.info("ImageTagger worker started.")
         self.worker = ExtendedWorker(ImageTagger().auto_tagging, path_list)
         self.worker.finished.connect(self._on_auto_tagging_finished)
+        self.worker.result.connect(self._process_auto_tagging_result)
         self.worker.start()
 
     def _on_tag_edit_button_clicked(self):
         if self.list.currentItem() is not None:
             listitem = self.list.currentItem()
-            TagEditWindow(self, listitem).exec_()
-
-            self.list.takeItem(self.list.currentRow())
-            self.update_ui()
+            listitemindex = self.list.currentRow()
+            editwindow = TagEditWindow(self, listitem)
+            editwindow.exec_()
+            if editwindow.result() == QDialog.Accepted:
+                logger.debug("Tag Edit Accepted.")
+                self.list.takeItem(listitemindex)
+            else:
+                logger.debug("Tag Edit Canceled.")
+                return
 
     def _on_auto_tagging_finished(self):
         logger.info("ImageTagger worker finished.")
+        count = self.list.count()
         self.list.clear()
         self.image_viewer.clear()
         self._button_disable()
         self._update_no_data_ui()
+        GUISignalManager().emit_on_auto_tagging_finished(count)
         DataContainer.clear_load_failed_data()
+
+    def _process_auto_tagging_result(self, result):
+        if result is not None:
+            data = [ImageFileDataFactory.create(path, tag) for path, tag in result]
+            DataContainer.add_loaded_data(data)
 
     def _all_hide(self):
         self.list_name_label.hide()
@@ -178,11 +192,12 @@ class TagEditWindow(QDialog):
 
     def _on_add_button_clicked(self):
         tag = self.tag_input.text()
-        add_tag(self._item.text(), tag)
-        data = ImageFileDataFactory.create(self._item.text(), tag)
+        newpath = add_tag(self._item.text(), tag)
+        data = ImageFileDataFactory.create(newpath, tag)
         DataContainer.add_loaded_data(data)
         self.hide()
         self.tag_input.clear()
+        GUISignalManager().on_tag_added.emit(data.file_path)
         super().accept()
 
     def reject(self) -> None:

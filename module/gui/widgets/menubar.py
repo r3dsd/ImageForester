@@ -33,11 +33,11 @@ class MyMenuBar(QMenuBar):
 
     def openImageTaggerwindow(self):
         if self.image_tagger_window and not self.image_tagger_window.isVisible():
-            logger.debug("ImageTaggerWindow is already opened")
+            logger.debug("ImageTaggerWindow is already opened using instance.")
             self.image_tagger_window.show()
             self.image_tagger_window.raise_()
             self.image_tagger_window.activateWindow()
         else:
-            logger.debug("Open ImageTaggerWindow")
+            logger.debug("ImageTaggerWindow is not opened yet. Open new instance.")
             self.image_tagger_window = ImageTaggerDialog(self.parent())
             self.image_tagger_window.show()

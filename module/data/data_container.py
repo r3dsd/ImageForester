@@ -1,6 +1,7 @@
 from .imagefiledata import ImageFileData
 
 from ..logger import get_logger
+import traceback
 
 logger = get_logger(__name__)
 
@@ -45,17 +46,26 @@ class DataContainer:
         logger.debug(f"Delete loaded data: {before_count} -> {cls.loaded_data_count}")
 
     @classmethod
-    def add_loaded_data(cls, data: ImageFileData) -> None:
+    def add_loaded_data(cls, data) -> None:
         if type(data) == ImageFileData:
             before_count = cls.loaded_data_count
             cls._loaded_data.add(data)
             cls.loaded_data_count += 1
             logger.debug(f"Add loaded data: {before_count} -> {cls.loaded_data_count}")
-        if type(data) == set:
+        elif type(data) == set:
             before_count = cls.loaded_data_count
             cls._loaded_data.update(data)
             cls.loaded_data_count = len(cls._loaded_data)
             logger.debug(f"Add loaded data: {before_count} -> {cls.loaded_data_count}")
+        else:
+            try:
+                set_data = set(data)
+                before_count = cls.loaded_data_count
+                cls._loaded_data.update(set_data)
+                cls.loaded_data_count = len(cls._loaded_data)
+                logger.debug(f"Add loaded data: {before_count} -> {cls.loaded_data_count}")
+            except Exception as e:
+                logger.error(f"Error: {e}\n{traceback.format_exc()}")
     @classmethod
     def get_searched_data(cls) -> set[ImageFileData]:
         return cls._searched_data

@@ -69,4 +69,4 @@ class PathSelector(QWidget):
 
     def _on_load_complete(self):
         GUISignalManager().on_load_complete.emit()
-        logger.info("Image Load Complete.")
+        logger.info("Image Load Complete.") 

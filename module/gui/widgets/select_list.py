@@ -44,7 +44,7 @@ class SelectList(QWidget):
         self._initSignal()
 
     def _initSignal(self):
-        GUISignalManager().list_count_changed.connect(self._update_count_label)
+        GUISignalManager().on_list_count_changed.connect(self._update_count_label)
         self.save_button.clicked.connect(self._save_files)
         self.list.itemClicked.connect(self._on_user_select)
         self.list.currentItemChanged.connect(self._on_user_select)
@@ -92,7 +92,7 @@ class SelectList(QWidget):
             else:
                 QListWidget.keyPressEvent(self.list, event)
                 return
-        GUISignalManager().emit_list_count_changed()
+        GUISignalManager().emit_on_list_count_changed()
 
     def _delete(self):
         delete_index = self.list.currentRow()
@@ -102,7 +102,7 @@ class SelectList(QWidget):
     def _force_delete(self):
         delete_index = self.list.currentRow()
         taked_item: ImageFileData = self.list.takeItem(delete_index).data(Qt.UserRole)
-        FileManager.delete_single_file(taked_item.file_path)
+        FileManager.delete_single_file(taked_item)
 
     def _move_item(self):
         taked_index = self.list.currentRow()

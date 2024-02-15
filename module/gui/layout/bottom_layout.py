@@ -53,6 +53,8 @@ class BottomLayout(QBoxLayout):
         GUISignalManager().on_load_image_empty.connect(self._on_load_image_empty)
         GUISignalManager().on_search_list_send2trash.connect(self._on_search_list_send2trash)
         GUISignalManager().on_select_list_save.connect(self._on_select_list_save)
+        GUISignalManager().on_tag_added.connect(self._on_tag_added)
+        GUISignalManager().on_auto_tagging_finished.connect(self._on_auto_tagging_finished)
 
     def _on_option_button_clicked(self):
         DialogFactory(self._mainwindow).create_setting_dialog()
@@ -62,20 +64,31 @@ class BottomLayout(QBoxLayout):
         self.info_console.setText(f"<b>Tags</b>: {highlight_text}")
 
     def _on_load_complete(self):
-        self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
         self.info_console.setText(f"Successfully loaded {DataContainer.loaded_data_count} images.")
+        self._update_count_label()
 
     def _on_load_image_empty(self):
         PopupFactory.show_info_message(self._mainwindow, "No loadable images in the selected folder.")
         self.load_count_label.setText("Loaded Image : 0")
 
-    def _on_search_list_send2trash(self):
-        self.info_console.setText(f"Successfully moved {DataContainer.loaded_data_count} images to the trash. <br> You can restore it in the trash.")
-        self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
+    def _on_search_list_send2trash(self, count: int):
+        self.info_console.setText(f"Successfully moved {count} images to the trash. <br> You can restore it in the trash. <br> Loaded {DataContainer.loaded_data_count} images.")
+        self._update_count_label()
 
     def _on_select_list_save(self, mode: Savemode):
         if mode == Savemode.Copy:
             self.info_console.setText(f"Successfully copied {DataContainer.loaded_data_count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
         elif mode == Savemode.Move:
             self.info_console.setText(f"Successfully moved {DataContainer.loaded_data_count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
-            self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
+            self._update_count_label()
+
+    def _on_tag_added(self, file_path: str):
+        self.info_console.setText(f"Successfully tagged {file_path}. <br> Successfully Loaded {DataContainer.loaded_data_count} images.")
+        self._update_count_label()
+
+    def _on_auto_tagging_finished(self, count: int):
+        self.info_console.setText(f"Successfully tagged {count} images. <br> Successfully Loaded {DataContainer.loaded_data_count} images.")
+        self._update_count_label()
+
+    def _update_count_label(self):
+        self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")

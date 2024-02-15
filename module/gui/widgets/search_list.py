@@ -42,7 +42,7 @@ class SearchList(QWidget):
         self._initSignal()
 
     def _initSignal(self):
-        GUISignalManager().list_count_changed.connect(self._update_count_label)
+        GUISignalManager().on_list_count_changed.connect(self._update_count_label)
         GUISignalManager().on_search_complete.connect(self._on_search_complete)
         self.send2trash_button.clicked.connect(self._sand2trash)
 
@@ -84,7 +84,7 @@ class SearchList(QWidget):
             else:
                 QListWidget.keyPressEvent(self.list, event)
                 return
-        GUISignalManager().emit_list_count_changed()
+        GUISignalManager().emit_on_list_count_changed()
 
     def _on_search_complete(self, search_list: list[ImageFileData]):
         self.clear()
@@ -106,7 +106,7 @@ class SearchList(QWidget):
     def _force_delete(self):
         delete_index = self.list.currentRow()
         taked_item :ImageFileData = self.list.takeItem(delete_index).data(Qt.UserRole)
-        FileManager.delete_single_file(taked_item.file_path)
+        FileManager.delete_single_file(taked_item)
 
     def _move_item(self):
         taked_index = self.list.currentRow()
@@ -127,10 +127,11 @@ class SearchList(QWidget):
             GUISignalManager().emit_on_item_selection_updated(self.list.currentItem().data(Qt.UserRole))
 
     def _sand2trash(self):
-        target_list: list[ImageFileData] = []
+        taget_file_list: list[ImageFileData] = []
         for index in range(self.list.count()):
-            target_list.append(self.list.item(index).data(Qt.UserRole))
-        FileManager.delete_files(target_list)
+            taget_file_list.append(self.list.item(index).data(Qt.UserRole))
+        count = len(taget_file_list)
+        FileManager.delete_files(taget_file_list, count)
         self.clear()
-        GUISignalManager().emit_on_search_list_send2trash()
         self._update_count_label()
+        GUISignalManager().emit_on_search_list_send2trash(count)

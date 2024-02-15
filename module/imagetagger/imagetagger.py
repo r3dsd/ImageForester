@@ -184,8 +184,13 @@ class ImageTagger:
                 self._add_text_chunk(file_path, "Description", tags_text)
                 logger.info(f"Tags added to {file_path}")
 
-    def auto_tagging(self, image_file_path_list: list[str], confidence=TAGGER_CONFIG["IMAGE_TAGGER_CONFIDENCE_THRESHOLD"], use_spaces=True, use_escape=True, include_ranks=False, score_descend=True):
+    def auto_tagging(self, image_file_path_list: list[str], 
+                    confidence=TAGGER_CONFIG["IMAGE_TAGGER_CONFIDENCE_THRESHOLD"], 
+                    use_spaces=True, use_escape=True, 
+                    include_ranks=False, 
+                    score_descend=True) -> list[tuple]:
         logger.info(f"Auto Tagging Started")
+        results: list[tuple] = []
         for file_path in image_file_path_list:
             image = Image.open(file_path)
             if self._has_description(image):
@@ -201,7 +206,10 @@ class ImageTagger:
                     score_descend,
                 )
                 self._add_text_chunk(file_path, "Description", tags_text)
+                results.append((file_path, filtered_tags))
                 logger.info(f"Tags added to {file_path}")
+        logger.info(f"Auto Tagging Finished")
+        return results
 
 def add_tag(png_file_path, text_value):
     logger.info(f"Adding tag to {png_file_path}")
@@ -227,3 +235,5 @@ def add_tag(png_file_path, text_value):
     with open(new_file_path, 'wb') as f:
         f.write(new_png_data)
     logger.info(f"Succesfully added tag to {png_file_path}")
+
+    return new_file_path

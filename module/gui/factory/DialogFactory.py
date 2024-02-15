@@ -57,7 +57,9 @@ class ConfirmDeleteDialog(QDialog):
 
         layout = QVBoxLayout()
         self.setLayout(layout)
-        message_label = QLabel(f"Are you sure you want to delete [{path}]?<br> <font color=\"#F55\">This action cannot be undone</font>. if you want undo, you should be go to trash folder.")
+        message_label = QLabel(f"""Are you sure you want to delete [{path}]?
+                            <br> <b><font color=\"#F55\">This action cannot be undone.</font></b> 
+                            <br>if you want undo, you should be go to trash folder.""")
 
         message_label.setTextFormat(Qt.RichText)
         message_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
