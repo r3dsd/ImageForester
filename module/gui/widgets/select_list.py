@@ -5,7 +5,7 @@ from ..factory.DialogFactory import DialogFactory
 
 from ...historymanager.r3historymanager import R3HistoryManager
 from ..guisignalmanager import GUISignalManager
-from ...file.filemanager import FileManager
+from ...file_managemant.filemanager import FileManager
 from ...data.imagefiledata import ImageFileData
 from ...r3util.r3lib import check_save_folder_name
 from ...user_setting import Savemode, UserSetting
@@ -144,7 +144,7 @@ class SelectList(QWidget):
                     break
 
                 if check_save_folder_name(folder_name):
-                    FILEMANAGER_CONFIG['SAVE_FILE_NAME'] = folder_name
+                    FILEMANAGER_CONFIG['SAVE_FILE_NAME'] = folder_name.replace(' ', '_')
                     logger.info(f"Save folder name: {FILEMANAGER_CONFIG['SAVE_FILE_NAME']}")
                     break
         except Exception as e:
