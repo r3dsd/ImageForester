@@ -25,6 +25,7 @@ class GUISignalManager(QObject, metaclass=Singleton):
     on_search_list_send2trash = pyqtSignal()
     on_tag_added = pyqtSignal(str)
     on_auto_tagging_finished = pyqtSignal(int)
+    on_deleted_loaded_data = pyqtSignal()
 
     _instance = None
 
@@ -62,3 +63,6 @@ class GUISignalManager(QObject, metaclass=Singleton):
 
     def emit_on_auto_tagging_finished(self, count: int):
         self.on_auto_tagging_finished.emit(count)
+
+    def emit_on_deleted_loaded_data(self):
+        self.on_deleted_loaded_data.emit()

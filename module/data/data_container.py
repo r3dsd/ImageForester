@@ -40,10 +40,15 @@ class DataContainer:
 
     @classmethod
     def delete_loaded_data(cls, data: set[ImageFileData]) -> None:
-        before_count = cls.loaded_data_count
-        cls._loaded_data.difference_update(data)
-        cls.loaded_data_count = len(cls._loaded_data)
-        logger.debug(f"Delete loaded data: {before_count} -> {cls.loaded_data_count}")
+        try:
+            if type(data) != set:
+                data = set(data)
+            before_count = cls.loaded_data_count
+            cls._loaded_data.difference_update(data)
+            cls.loaded_data_count = len(cls._loaded_data)
+            logger.debug(f"Delete loaded data: {before_count} -> {cls.loaded_data_count}")
+        except Exception as e:
+            logger.error(f"Error: {e}\n{traceback.format_exc()}")
 
     @classmethod
     def add_loaded_data(cls, data) -> None:

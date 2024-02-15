@@ -55,6 +55,7 @@ class BottomLayout(QBoxLayout):
         GUISignalManager().on_select_list_save.connect(self._on_select_list_save)
         GUISignalManager().on_tag_added.connect(self._on_tag_added)
         GUISignalManager().on_auto_tagging_finished.connect(self._on_auto_tagging_finished)
+        GUISignalManager().on_deleted_loaded_data.connect(self._update_count_label)
 
     def _on_option_button_clicked(self):
         DialogFactory(self._mainwindow).create_setting_dialog()

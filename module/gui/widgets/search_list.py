@@ -45,7 +45,7 @@ class SearchList(QWidget):
     def _initSignal(self):
         GUISignalManager().on_list_count_changed.connect(self._update_count_label)
         GUISignalManager().on_search_complete.connect(self._on_search_complete)
-        self.send2trash_button.clicked.connect(self._sand2trash)
+        self.send2trash_button.clicked.connect(self._delete_all)
 
     def set(self, target_list):
         self.target: QWidget = target_list
@@ -100,11 +100,6 @@ class SearchList(QWidget):
         if search_list:
             self.setFocus()
 
-    def _delete(self):
-        delete_index = self.list.currentRow()
-        taked_item = self.list.takeItem(delete_index)
-        R3HistoryManager.add_delete_history(self.list, taked_item, delete_index)
-
     def _force_delete(self):
         delete_index = self.list.currentRow()
         taked_item :ImageFileData = self.list.takeItem(delete_index).data(Qt.UserRole)
@@ -128,7 +123,7 @@ class SearchList(QWidget):
         if self.list.currentItem() is not None:
             GUISignalManager().emit_on_item_selection_updated(self.list.currentItem().data(Qt.UserRole))
 
-    def _sand2trash(self):
+    def _delete_all(self):
         taget_file_list: list[ImageFileData] = []
         for index in range(self.list.count()):
             taget_file_list.append(self.list.item(index).data(Qt.UserRole))

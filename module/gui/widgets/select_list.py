@@ -94,11 +94,6 @@ class SelectList(QWidget):
                 return
         GUISignalManager().emit_on_list_count_changed()
 
-    def _delete(self):
-        delete_index = self.list.currentRow()
-        taked_item = self.list.takeItem(delete_index)
-        R3HistoryManager.add_delete_history(self.list, taked_item, delete_index)
-
     def _force_delete(self):
         delete_index = self.list.currentRow()
         taked_item: ImageFileData = self.list.takeItem(delete_index).data(Qt.UserRole)
@@ -109,9 +104,6 @@ class SelectList(QWidget):
         taked_item = self.list.takeItem(taked_index)
         self.target.list.addItem(taked_item)
         R3HistoryManager.add_move_history(self.list, self.target.list, taked_item, taked_index)
-
-    def _undo(self):
-        R3HistoryManager.undo()
 
     def _update_count_label(self):
         count = self.list.count()
@@ -137,8 +129,9 @@ class SelectList(QWidget):
 
         FileManager.image_files_to_save_folder(target_list)
         self.clear()
+        self.save_button.setDisabled(True)
+        self.select_count_label.setText(f"Select Count: 0")
         GUISignalManager().emit_on_select_list_save(UserSetting.get('SAVE_MODE'))
-        self._update_count_label()
 
         if not UserSetting.get('DISABLE_OPEN_FOLDER_POPUP'):
             pass
