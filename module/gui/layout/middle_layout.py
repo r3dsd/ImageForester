@@ -17,11 +17,11 @@ class MiddleLayout(QBoxLayout):
         self._initUI()
 
     def _initUI(self):
-        self.searched_list = SearchList()
+        self.searched_list = SearchList(self.mainwindow)
         self.searched_list.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self.addWidget(self.searched_list)
 
-        self.selected_list = SelectList()
+        self.selected_list = SelectList(self.mainwindow)
         self.selected_list.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self.addWidget(self.selected_list)
 

@@ -5,10 +5,16 @@ from ...historymanager.r3historymanager import R3HistoryManager
 from ..guisignalmanager import GUISignalManager
 from ...data.imagefiledata import ImageFileData
 from ...file_managemant.filemanager import FileManager
+from ..factory.DialogFactory import DialogFactory
+from ...user_setting import UserSetting
+
+from ...logger import get_logger
+
+logger = get_logger(__name__)
 
 class SearchList(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -41,7 +47,7 @@ class SearchList(QWidget):
         self.send2trash_button.clicked.connect(self._sand2trash)
 
     def set(self, target_list):
-        self.target = target_list
+        self.target: QWidget = target_list
 
     def clear(self):
         self.list.clear()
@@ -62,13 +68,22 @@ class SearchList(QWidget):
                 return
         elif self.list.hasFocus() and self.list.currentItem() is not None:
             if key == Qt.Key_Delete:
-                self._delete()
+                if UserSetting.get('FORCE_DELETE'):
+                    logger.info("Force Delete is Enabled... deleting...")
+                    self._force_delete()
+                else:
+                    path = self.list.currentItem().data(Qt.UserRole).file_path
+                    confirm = DialogFactory(self.parent()).create_confirm_delete_dialog(path)
+                    confirm.exec_()
+                    if confirm.result:
+                        self._force_delete()
+                    else:
+                        return
             elif key == Qt.Key_Right:
                 self._move_item()
             else:
                 QListWidget.keyPressEvent(self.list, event)
                 return
-
         GUISignalManager().emit_list_count_changed()
 
     def _on_search_complete(self, search_list: list[ImageFileData]):
@@ -87,6 +102,11 @@ class SearchList(QWidget):
         delete_index = self.list.currentRow()
         taked_item = self.list.takeItem(delete_index)
         R3HistoryManager.add_delete_history(self.list, taked_item, delete_index)
+
+    def _force_delete(self):
+        delete_index = self.list.currentRow()
+        taked_item :ImageFileData = self.list.takeItem(delete_index).data(Qt.UserRole)
+        FileManager.delete_single_file(taked_item.file_path)
 
     def _move_item(self):
         taked_index = self.list.currentRow()

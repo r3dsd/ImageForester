@@ -26,7 +26,8 @@ class UserSetting:
         'AUTO_GENERATE_FOLDER_NAME' : False, # Auto typing save folder (True, False) Default: False
         'DISABLE_OPEN_FOLDER_POPUP' : False, # open folder popup show (True, False) Default: False
         'GUI_STYLE' : 'DARK', # GUI Style ('DARK', 'LIGHT')
-        'FORCE_DELETE' : False, # Force delete (True, False) if true, in list, delete button will be send2trash, false, delete button will be only list delete
+        'FORCE_DELETE' : False, # Force delete (True, False) Default: False
+        'AUTO_DELETE_AFTER_TAGGING' : False, # Auto delete after tagging (True, False) Default: False
     }
     @classmethod
     def load(cls) -> None:

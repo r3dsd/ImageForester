@@ -10,6 +10,7 @@ from ...data.imagefiledata import ImageFileData
 from ...r3util.r3lib import check_save_folder_name
 from ...user_setting import Savemode, UserSetting
 from ...config import FILEMANAGER_CONFIG
+from ..factory.DialogFactory import DialogFactory
 
 from ...logger import get_logger
 import traceback
@@ -17,8 +18,8 @@ import traceback
 logger = get_logger(__name__)
 
 class SelectList(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -77,7 +78,15 @@ class SelectList(QWidget):
                 return
         elif self.list.hasFocus() and self.list.currentItem() is not None:
             if key == Qt.Key_Delete:
-                self._delete()
+                if UserSetting.get('FORCE_DELETE'):
+                    self._force_delete()
+                else:
+                    confirm = DialogFactory(self.parent()).create_confirm_delete_dialog()
+                    confirm.exec_()
+                    if confirm.result:
+                        self._force_delete()
+                    else:
+                        return
             elif key == Qt.Key_Left:
                 self._move_item()
             else:
@@ -89,6 +98,11 @@ class SelectList(QWidget):
         delete_index = self.list.currentRow()
         taked_item = self.list.takeItem(delete_index)
         R3HistoryManager.add_delete_history(self.list, taked_item, delete_index)
+
+    def _force_delete(self):
+        delete_index = self.list.currentRow()
+        taked_item: ImageFileData = self.list.takeItem(delete_index).data(Qt.UserRole)
+        FileManager.delete_single_file(taked_item.file_path)
 
     def _move_item(self):
         taked_index = self.list.currentRow()

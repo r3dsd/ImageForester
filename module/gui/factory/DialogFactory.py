@@ -6,7 +6,7 @@ from ..dialog.image_tagger_dialog import ImageTaggerDialog
 from ..dialog.setting_dialog import SettingDialog
 
 class DialogFactory:
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         self.parent = parent
     
     def create_input_folder_name_dialog(self):
@@ -14,6 +14,9 @@ class DialogFactory:
     
     def create_load_confirm_dialog(self, count):
         return LoadConfirmDialog(self.parent, count)
+    
+    def create_confirm_delete_dialog(self, path):
+        return ConfirmDeleteDialog(self.parent, path)
     
     def create_folder_open_dialog(self, count):
         return FolderOpenDialog(self.parent, count)
@@ -44,6 +47,57 @@ class LoadingDialog(QProgressDialog):
     def _progress_update(self, value, message):
         self.setLabelText(message)
         self.setValue(value)
+
+class ConfirmDeleteDialog(QDialog):
+    def __init__(self, parent=None, path=""):
+        super().__init__(parent)
+        self.setWindowTitle("Delete Confirm")
+        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint | Qt.CustomizeWindowHint)
+
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        message_label = QLabel(f"Are you sure you want to delete [{path}]?<br> <font color=\"#F55\">This action cannot be undone</font>. if you want undo, you should be go to trash folder.")
+
+        message_label.setTextFormat(Qt.RichText)
+        message_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        message_label.setStyleSheet("padding: 10px;")
+        layout.addWidget(message_label)
+
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(line)
+
+        button_layout = QHBoxLayout()
+        layout.addLayout(button_layout)
+        yes_button = QPushButton("Yes")
+        yes_button.clicked.connect(self.accept)
+        button_layout.addWidget(yes_button)
+        no_button = QPushButton("No")
+        no_button.clicked.connect(self.reject)
+        button_layout.addWidget(no_button)
+
+        under_layout = QHBoxLayout()
+        layout.addLayout(under_layout)
+        under_layout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.checkbox = QCheckBox("Don't show this again")
+        self.checkbox.setStyleSheet("QCheckBox::indicator { width: 10px; height: 10px; }")
+        self.checkbox.setMinimumHeight(20)
+        under_layout.addWidget(self.checkbox)
+
+        self.setFixedSize(self.sizeHint())
+
+    def accept(self):
+        self.result = True
+        if self.checkbox.isChecked():
+            UserSetting.set("FORCE_DELETE", True)
+            UserSetting.save()
+        super().accept()
+
+    def reject(self):
+        self.result = False
+        super().reject()
 
 class InputFolderNameDialog(QDialog):
     def __init__(self, parent=None):
