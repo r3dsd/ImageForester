@@ -102,8 +102,7 @@ class ImageTaggerDialog(QDialog):
         path_list = [self.list.item(i).text() for i in range(self.list.count())]
         logger.info("ImageTagger worker started.")
         self.worker = ExtendedWorker(ImageTagger().auto_tagging, path_list)
-        self.worker.finished.connect(self._on_auto_tagging_finished)
-        self.worker.result.connect(self._process_auto_tagging_result)
+        self.worker.result.connect(self._on_auto_tagging_finished)
         self.worker.start()
 
     def _on_tag_edit_button_clicked(self):
@@ -119,20 +118,18 @@ class ImageTaggerDialog(QDialog):
                 logger.debug("Tag Edit Canceled.")
                 return
 
-    def _on_auto_tagging_finished(self):
+    def _on_auto_tagging_finished(self, result):
         logger.info("ImageTagger worker finished.")
+        if result is not None:
+            data = [ImageFileDataFactory.create(path, tag) for path, tag in result]
+            DataContainer.add_loaded_data(data)
+        DataContainer.clear_load_failed_data()
         count = self.list.count()
         self.list.clear()
         self.image_viewer.clear()
         self._button_disable()
         self._update_no_data_ui()
         GUISignalManager().emit_on_auto_tagging_finished(count)
-        DataContainer.clear_load_failed_data()
-
-    def _process_auto_tagging_result(self, result):
-        if result is not None:
-            data = [ImageFileDataFactory.create(path, tag) for path, tag in result]
-            DataContainer.add_loaded_data(data)
 
     def _all_hide(self):
         self.list_name_label.hide()

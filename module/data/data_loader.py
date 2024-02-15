@@ -9,6 +9,7 @@ from ..constants import IMAGE_FORMATS
 from ..user_setting import UserSetting
 from .imagefiledata import ImageFileData
 from ..logger import get_logger
+from ..r3util.r3path import process_path
 
 logger = get_logger(__name__)
 
@@ -49,8 +50,9 @@ class DataLoader:
         count = 0
         for root, _, files in os.walk(directory_path):
             for file_name in files:
-                if file_name.split(".")[-1] in IMAGE_FORMATS:
-                    cls._loadable_file_list.append(os.path.join(root, file_name))
+                if file_name.split('.')[-1].lower() in IMAGE_FORMATS:
+                    path = process_path(os.path.join(root, file_name))
+                    cls._loadable_file_list.append(path)
                     count += 1
         return count
     

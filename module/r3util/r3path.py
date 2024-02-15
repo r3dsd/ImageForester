@@ -42,3 +42,9 @@ def get_resource_path(relative_path: str):
         # using python3 interpreter
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
+def process_path(path: str) -> str:
+    """
+    return the path
+    """
+    return os.path.normpath(os.path.abspath(path))

@@ -94,6 +94,7 @@ class SearchList(QWidget):
             tmp.setText(item.file_name)
             tmp.setData(Qt.UserRole, item)
             self.list.addItem(tmp)
+        self.list.sortItems()
         self._update_count_label()
 
         if search_list:

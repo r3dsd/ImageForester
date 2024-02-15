@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 import os
 
+from ..r3util.r3path import process_path
 from ..logger import get_logger
 
 logger = get_logger(__name__)
@@ -12,6 +13,9 @@ class ImageFileData:
     file_tags_text: str
     file_tags_list: Optional[List[str]] = field(default=None, init=False)
     file_name: Optional[str] = field(default=None, init=False)
+
+    def __post_init__(self):
+        self.file_path = process_path(self.file_path)
 
     def process_file_tags(self):
         self.file_tags_list = [tag.strip().lower() for tag in self.file_tags_text.split(",")]
@@ -33,15 +37,14 @@ class ImageFileData:
 class ImageFileDataFactory:
     @staticmethod
     def create(file_path: str, file_tags_text: str) -> ImageFileData:
-        norm_path = os.path.normpath(file_path)
+        norm_path = process_path(file_path)
         data = ImageFileData(norm_path, file_tags_text)
         data.process_file_tags()
-        logger.debug(f"Create Data: {data}")
         return data
     
     @staticmethod
     def create_no_process(file_path: str, file_tags_text: str) -> ImageFileData:
-        norm_path = os.path.normpath(file_path)
+        norm_path = process_path(file_path)
         data = ImageFileData(norm_path, file_tags_text)
         logger.debug(f"Create Data: {data}")
         return data

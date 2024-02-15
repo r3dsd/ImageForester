@@ -186,6 +186,8 @@ class SettingDialog(QDialog):
         self.guistyle_value.activated.connect(self._on_guistyle_value_activated)
         self.auto_generate_folder_name_value.stateChanged.connect(self._on_auto_generated_folder_name_value_statechanged)
         self.disable_open_folder_popup_value.stateChanged.connect(self._on_disable_open_folder_popup_value_stateChanged)
+        self.force_delete_value.stateChanged.connect(self._on_force_delete_value_stateChanged)
+        self.auto_delete_after_tagging_value.stateChanged.connect(self._on_auto_delete_after_tagging_value_stateChanged)
 
     def _on_savepath_button_clicked(self):
         savepath = QFileDialog.getExistingDirectory(self, 'Save Path')
@@ -220,3 +222,9 @@ class SettingDialog(QDialog):
 
     def _on_disable_open_folder_popup_value_stateChanged(self, state: int):
         UserSetting.set('DISABLE_OPEN_FOLDER_POPUP', True if state else False)
+
+    def _on_force_delete_value_stateChanged(self, state: int):
+        UserSetting.set('FORCE_DELETE', True if state else False)
+
+    def _on_auto_delete_after_tagging_value_stateChanged(self, state: int):
+        UserSetting.set('AUTO_DELETE_AFTER_TAGGING', True if state else False)
