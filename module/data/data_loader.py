@@ -21,7 +21,6 @@ class DataLoader:
         Load image from _loadable_file_list
         """
         DataContainer.clear()
-
         def process_file(file_path) -> ImageFileData:
             image_file_data, is_acessable = get_png_description(file_path)
             if is_acessable:
@@ -31,8 +30,8 @@ class DataLoader:
         
         files_to_process = cls._loadable_file_list
 
-        max_workers = os.cpu_count()
-        results = set()
+        max_workers = 4
+        results: set[ImageFileData] = set()
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             for result in executor.map(process_file, files_to_process):
                     if result is not None:

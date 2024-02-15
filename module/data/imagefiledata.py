@@ -2,6 +2,10 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 import os
 
+from ..logger import get_logger
+
+logger = get_logger(__name__)
+
 @dataclass
 class ImageFileData:
     file_path: str
@@ -25,3 +29,19 @@ class ImageFileData:
         if isinstance(other, self.__class__):
             return self.file_path == other.file_path
         return False
+    
+class ImageFileDataFactory:
+    @staticmethod
+    def create(file_path: str, file_tags_text: str) -> ImageFileData:
+        norm_path = os.path.normpath(file_path)
+        data = ImageFileData(norm_path, file_tags_text)
+        data.process_file_tags()
+        logger.debug(f"Create Data: {data}")
+        return data
+    
+    @staticmethod
+    def create_no_process(file_path: str, file_tags_text: str) -> ImageFileData:
+        norm_path = os.path.normpath(file_path)
+        data = ImageFileData(norm_path, file_tags_text)
+        logger.debug(f"Create Data: {data}")
+        return data

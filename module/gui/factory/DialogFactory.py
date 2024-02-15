@@ -1,96 +1,51 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFrame, QSizePolicy, QSpacerItem, QCheckBox, QLineEdit
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFrame, QSizePolicy, QSpacerItem, QCheckBox, QLineEdit, QProgressDialog
+from PyQt5.QtCore import Qt, pyqtSignal
 from ...user_setting import UserSetting
 from ...config import FILEMANAGER_CONFIG
-from .image_tagger_window import ImageTaggerWindow
-import winsound
+from ..dialog.image_tagger_dialog import ImageTaggerDialog
+from ..dialog.setting_dialog import SettingDialog
 
 class DialogFactory:
     def __init__(self, parent):
         self.parent = parent
+    
+    def create_input_folder_name_dialog(self):
+        return InputFolderNameDialog(self.parent)
+    
+    def create_load_confirm_dialog(self, count):
+        return LoadConfirmDialog(self.parent, count)
+    
+    def create_folder_open_dialog(self, count):
+        return FolderOpenDialog(self.parent, count)
+    
+    def create_image_tagger_dialog(self):
+        return ImageTaggerDialog(self.parent)
+    
+    def create_loading_dialog(self):
+        return LoadingDialog(self.parent)
+    
+    def create_setting_dialog(self, full_setting=False):
+        return SettingDialog(self.parent, full_setting)
 
-    def create_popup(self, message, button_text="OK"):
-        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
-        return DefalutPopup(self.parent,message, button_text)
-    
-    def create_yes_no_popup(self, message, yes_text="Yes", no_text="No"):
-        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
-        return YesNoPopup(self.parent, message, yes_text, no_text)
-    
-    def create_input_folder_name_popup(self):
-        return InputFolderNamePopup(self.parent)
-    
-    def create_warning_popup(self, message):
-        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
-        return self.create_popup("Warning", message)
-    
-    def create_load_confirm_popup(self, count):
-        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
-        return LoadConfirmPopup(self.parent, count)
-    
-    def create_folder_open_popup(self, count):
-        winsound.PlaySound("SystemAsterisk", winsound.SND_ASYNC | winsound.SND_ALIAS)
-        return FolderOpenPopup(self.parent, count)
-    
-    def create_image_tagger_popup(self):
-        return ImageTaggerWindow(self.parent)
-    
-class DefalutPopup(QDialog):
-    def __init__(self, parent, message, button_text="OK"):
+class LoadingDialog(QProgressDialog):
+    progress_update = pyqtSignal(int, str)
+
+    def __init__(self, parent):
         super().__init__(parent)
-        self.setWindowTitle("Message")
+        self.setWindowTitle("Loading")
+        self.setWindowModality(Qt.WindowModal)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint | Qt.CustomizeWindowHint)
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        self.setLabelText("Loading...")
+        self.setCancelButton(None)
+        self.setRange(0, 100)
+        self.setFixedSize(300, 100)
+        self.progress_update.connect(self._progress_update)
 
-        message_label = QLabel(message)
-        layout.addWidget(message_label)
+    def _progress_update(self, value, message):
+        self.setLabelText(message)
+        self.setValue(value)
 
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-        layout.addWidget(line)
-
-        button_layout = QHBoxLayout()
-        layout.addLayout(button_layout)
-        button_layout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        ok_button = QPushButton(button_text)
-        ok_button.clicked.connect(self.accept)
-        button_layout.addWidget(ok_button)
-
-        self.setFixedSize(self.sizeHint())
-
-class YesNoPopup(QDialog):
-    def __init__(self, parent, message, yes_text="Yes", no_text="No"):
-        super().__init__(parent)
-        self.setWindowTitle("Message")
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint | Qt.CustomizeWindowHint)
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-
-        message_label = QLabel(message)
-        layout.addWidget(message_label)
-
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-        layout.addWidget(line)
-
-        button_layout = QHBoxLayout()
-        layout.addLayout(button_layout)
-        button_layout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        yes_button = QPushButton(yes_text)
-        yes_button.clicked.connect(self.accept)
-        button_layout.addWidget(yes_button)
-        no_button = QPushButton(no_text)
-        no_button.clicked.connect(self.reject)
-        button_layout.addWidget(no_button)
-
-        self.setFixedSize(self.sizeHint())
-
-class InputFolderNamePopup(QDialog):
+class InputFolderNameDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Save Folder Name")
@@ -143,7 +98,7 @@ class InputFolderNamePopup(QDialog):
         self.result = ''
         super().reject()
 
-class FolderOpenPopup(QDialog):
+class FolderOpenDialog(QDialog):
     def __init__(self, parent=None, count=0):
         super().__init__(parent)
         self.setWindowTitle("Successfully saved")
@@ -188,7 +143,7 @@ class FolderOpenPopup(QDialog):
 
     def accept(self):
         if self.checkbox.isChecked():
-            UserSetting.set("DISABLE_OPEN_FOLDER_POPUP", True)
+            UserSetting.set("DISABLE_OPEN_FOLDER_dialog", True)
             UserSetting.save()
         super().accept()
 
@@ -200,14 +155,14 @@ class FolderOpenPopup(QDialog):
         os.startfile(FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH'])
         super().accept()
 
-class LoadConfirmPopup(QDialog):
+class LoadConfirmDialog(QDialog):
     def __init__(self, parent, count):
         super().__init__(parent)
         self.setWindowTitle("Loading")
         self.setWindowModality(Qt.ApplicationModal)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint | Qt.CustomizeWindowHint)
 
-        # Design like create_yes_no_popup
+        # Design like create_yes_no_dialog
         layout = QVBoxLayout()
         self.setLayout(layout)
 

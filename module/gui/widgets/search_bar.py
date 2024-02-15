@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit, QPushButton
 from ...searchmanager.search_manager import SearchManager
 from ..guisignalmanager import GUISignalManager
 from ...data.data_container import DataContainer
-from .popupFactory import DialogFactory
+from ..factory.PopupFactory import PopupFactory
 class SearchBar(QWidget):
     def __init__(self):
         super().__init__()
@@ -26,11 +26,11 @@ class SearchBar(QWidget):
 
     def search_request(self):
         keywords = [x.strip() for x in self.input_field.text().split(",") if x.strip() != ""]
-        if len(keywords) == 0:
-            DialogFactory(self).create_popup("Warning", "Please input search keywords.").exec_()
-            return
         if DataContainer.loaded_data_count == 0:
-            DialogFactory(self).create_popup("Warning", "There is no loaded data.").exec_()
+            PopupFactory.show_info_message(self, "You must load images first. Please select a folder to load images.")
+            return
+        if len(keywords) == 0:
+            PopupFactory.show_info_message(self, "Please input search keywords.")
             return
         DataContainer.set_search_keywords(keywords)
         result = SearchManager().search(keywords)

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QBoxLayout, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QBoxLayout
 
 from ..widgets.search_bar import SearchBar
 

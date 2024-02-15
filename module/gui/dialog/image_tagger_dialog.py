@@ -1,17 +1,17 @@
-import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QHBoxLayout, QPushButton, QSizePolicy, QLineEdit, QListWidgetItem
-from PyQt5.QtGui import QPixmap
 from ..guisignalmanager import GUISignalManager
 from ...data.data_container import DataContainer
+from ...data.imagefiledata import ImageFileDataFactory
 from ...imagetagger.imagetagger import ImageTagger, add_tag
 from ..worker import ExtendedWorker
+from ..widgets.image_viewer import ImageViewer
 
 from ...logger import get_logger
 
 logger = get_logger(__name__)
 
-class ImageTaggerWindow(QDialog):
+class ImageTaggerDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -58,19 +58,16 @@ class ImageTaggerWindow(QDialog):
         list_button_layout.addWidget(self.auto_tag_button)
         list_button_layout.addWidget(self.tag_edit_button)
 
-        self.preview_image = QLabel()
-        self.preview_image.setAlignment(Qt.AlignCenter)
-        self.preview_image.setMinimumSize(512, 512)
-        self.preview_image.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        middle_layout.addWidget(self.preview_image)
+        self.image_viewer = ImageViewer(self.parent())
+        middle_layout.addWidget(self.image_viewer)
 
         self._all_hide()
         self.update_ui()  # 초기 UI 상태 업데이트
         self.setFixedSize(self.sizeHint())
 
         GUISignalManager().on_load_complete.connect(self.update_ui)
-        self.list.itemClicked.connect(self._preview_image_update)
-        self.list.currentItemChanged.connect(self._preview_image_update)
+        self.list.itemClicked.connect(self._on_item_selection_changed)
+        self.list.currentItemChanged.connect(self._on_item_selection_changed)
 
     def update_ui(self):
         if DataContainer.has_load_failed_data():
@@ -81,7 +78,7 @@ class ImageTaggerWindow(QDialog):
     def _update_has_data_ui(self):
         self.list_name_label.show()
         self.list.show()
-        self.preview_image.show()
+        self.image_viewer.show()
         self.no_data_label.hide()
         self.list.clear()
         for file_path in DataContainer.get_load_failed_data():
@@ -91,18 +88,13 @@ class ImageTaggerWindow(QDialog):
     def _update_no_data_ui(self):
         self.list_name_label.show()
         self.list.hide()
-        self.preview_image.show()
+        self.image_viewer.show()
         self.no_data_label.show()
         self._button_disable()
 
-    def _preview_image_update(self, item: QListWidgetItem):
-        if item is None:
-            return
-        image_path = item.text()
-        normpath = os.path.normpath(image_path)
-        pixmap = QPixmap(normpath)
-        scaled_pixmap = pixmap.scaled(self.preview_image.width(), self.preview_image.height(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.preview_image.setPixmap(scaled_pixmap)
+    def _on_item_selection_changed(self, item: QListWidgetItem):
+        if item is not None:
+            self.image_viewer.update_image(item.text())
 
     def _on_auto_tag_button_clicked(self):
         path_list = [self.list.item(i).text() for i in range(self.list.count())]
@@ -117,16 +109,12 @@ class ImageTaggerWindow(QDialog):
             TagEditWindow(self, listitem).exec_()
 
             self.list.takeItem(self.list.currentRow())
-            if self.list.count() > 0:
-                self.list.setCurrentRow(0)
-                self._preview_image_update(self.list.currentItem())
-            else:
-                self.update_ui()
+            self.update_ui()
 
     def _on_auto_tagging_finished(self):
         logger.info("ImageTagger worker finished.")
         self.list.clear()
-        self.preview_image.clear()
+        self.image_viewer.clear()
         self._button_disable()
         self._update_no_data_ui()
         DataContainer.clear_load_failed_data()
@@ -135,7 +123,7 @@ class ImageTaggerWindow(QDialog):
         self.list_name_label.hide()
         self.list.hide()
         self.no_data_label.hide()
-        self.preview_image.hide()
+        self.image_viewer.hide()
 
     def _button_disable(self):
         self.auto_tag_button.setDisabled(True)
@@ -191,6 +179,8 @@ class TagEditWindow(QDialog):
     def _on_add_button_clicked(self):
         tag = self.tag_input.text()
         add_tag(self._item.text(), tag)
+        data = ImageFileDataFactory.create(self._item.text(), tag)
+        DataContainer.add_loaded_data(data)
         self.hide()
         self.tag_input.clear()
         super().accept()

@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QSizePoli
 from PyQt5.QtCore import Qt, QTimer
 from ..worker import ExtendedWorker
 from ...data.data_loader import DataLoader
-from ..widgets.popupFactory import DialogFactory
+from ..factory.DialogFactory import DialogFactory
 from ...user_setting import UserSetting
 from ..guisignalmanager import GUISignalManager
 
@@ -58,7 +58,7 @@ class PathSelector(QWidget):
             self._image_load()
             return
         
-        result = DialogFactory(self).create_load_confirm_popup(count).exec_()
+        result = DialogFactory(self).create_load_confirm_dialog(count).exec_()
         if result == QDialog.Accepted:
             self._image_load()
 

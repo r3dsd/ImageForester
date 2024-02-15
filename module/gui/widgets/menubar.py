@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMenuBar, QAction
-from .settingdialog import SettingDialog
-from ..widgets.image_tagger_window import ImageTaggerWindow
+from ..dialog.image_tagger_dialog import ImageTaggerDialog
+from ..factory.DialogFactory import DialogFactory
 from ...logger import get_logger
 
 logger = get_logger(__name__)
@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 class MyMenuBar(QMenuBar):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.image_tagger_window: ImageTaggerWindow = None
+        self.image_tagger_window: ImageTaggerDialog = None
         self._initUI()
 
     def _initUI(self):
@@ -29,7 +29,7 @@ class MyMenuBar(QMenuBar):
         toolsMenu.addAction(settingAction)
 
     def openSettingDialog(self):
-        SettingDialog(self.parent(), full_setting=True)
+        DialogFactory(self.parent()).create_setting_dialog(full_setting=True)
 
     def openImageTaggerwindow(self):
         if self.image_tagger_window and not self.image_tagger_window.isVisible():
@@ -39,5 +39,5 @@ class MyMenuBar(QMenuBar):
             self.image_tagger_window.activateWindow()
         else:
             logger.debug("Open ImageTaggerWindow")
-            self.image_tagger_window = ImageTaggerWindow(self.parent())
+            self.image_tagger_window = ImageTaggerDialog(self.parent())
             self.image_tagger_window.show()
