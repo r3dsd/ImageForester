@@ -2,12 +2,10 @@ from concurrent.futures import ThreadPoolExecutor
 import shutil
 import os
 import re
-from datetime import datetime
-
 from ..data.data_container import ImageFileData
 from ..user_setting import UserSetting
 from ..data.data_container import DataContainer
-from ..r3util.r3path import get_defalut_save_path
+from ..r3util.r3path import get_defalut_save_path, process_path
 from ..config import FILEMANAGER_CONFIG
 
 from ..logger import get_logger
@@ -36,44 +34,43 @@ def copy_files(target_file_list: set[ImageFileData], save_folder_path: str):
 
 def copy_file(file_path, save_folder_path):
     destination_file_path = generate_unique_file_path(file_path, save_folder_path, '_Copy')
+    destination_file_path = process_path(destination_file_path)
     shutil.copy(file_path, destination_file_path)
     logger.info(f'Copy: {file_path} -> {destination_file_path}')
 
 def move_file(file_path, save_folder_path):
     destination_file_path = generate_unique_file_path(file_path, save_folder_path, '_Move')
+    destination_file_path = process_path(destination_file_path)
     shutil.move(file_path, destination_file_path)
     logger.info(f'Move: {file_path} -> {destination_file_path}')
 
-def fit_filename(original_filename, timestamp, extension, max_length=50) -> str:
-    """
-    return the filename that fits the maximum length if the filename is too long to fit the maximum length (50 characters)
-    """
-    base_length = len(timestamp) + len(extension) + 3
-    available_length = max_length - base_length
-
-    if len(original_filename) > available_length:
-        return f"{original_filename[:available_length - 3]}..."
-    else:
-        return original_filename
-
 def generate_unique_file_path(original_path, save_folder_path, savemode: str):
-    """
-    return the unique file path in the save folder
-    """
     filename = os.path.basename(original_path)
     file_name, file_extension = os.path.splitext(filename)
-    timestamp = datetime.now().strftime("_%y%m%d_%H%M%S")  # ex) _210101_123456
 
-    final_filename = fit_filename(file_name, timestamp, file_extension)
-    new_filename = f"{final_filename}{timestamp}{savemode}{file_extension}"
-    return os.path.join(save_folder_path, new_filename)
+    base_length = len(file_extension) + len(savemode)
+    max_name_length = 50 - base_length - 1
+    
+    if len(file_name) > max_name_length - 3:
+        file_name = f"{file_name[:max_name_length-3]}..."
+    
+    new_filename = f"{file_name}{savemode}{file_extension}"
+    full_path = os.path.join(save_folder_path, new_filename)
+    counter = 1
+
+    while os.path.exists(full_path):
+        new_filename = f"{file_name}{savemode}_{counter}{file_extension}"
+        full_path = os.path.join(save_folder_path, new_filename)
+        counter += 1
+
+    return full_path
 
 def get_save_path():
     """
     return the save folder path
     """
     save_folder_name = FILEMANAGER_CONFIG['SAVE_FILE_NAME']
-    base_save_folder_path = UserSetting.get('IMAGE_SAVE_DIR')
+    base_save_folder_path = UserSetting.get('SAVE_PATH')
     if not base_save_folder_path:
         base_save_folder_path = get_defalut_save_path()
 
@@ -89,12 +86,19 @@ def get_save_path():
         os.makedirs(base_save_folder_path)
     else:
         logger.info(f'folder already exists: {base_save_folder_path}')
-    logger.debug(f'function get_save_path return: {base_save_folder_path}')
+    base_save_folder_path = process_path(base_save_folder_path)
     FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH'] = base_save_folder_path
     return base_save_folder_path
 
 def create_folder_name_using_search_keyword():
     search_keyword = DataContainer.get_search_keywords()
+    logger.info(f'Create folder name using search keyword: {search_keyword}')
     string = '_'.join(search_keyword)
     string = re.sub(r'[\\/:*?"<>|~!]', '', string)
+    length = len(string)
+    if length > 50:
+        string = string[:50]
+    elif length == 0:
+        string = 'Image_Search_Result'
+    logger.info(f'Create folder name using search keyword: {string}')
     return string

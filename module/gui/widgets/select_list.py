@@ -78,13 +78,13 @@ class SelectList(QWidget):
                 return
         elif self.list.hasFocus() and self.list.currentItem() is not None:
             if key == Qt.Key_Delete:
-                if UserSetting.get('FORCE_DELETE'):
-                    self._force_delete()
+                if UserSetting.check('FORCE_DELETE'):
+                    self._delete()
                 else:
                     confirm = DialogFactory(self.parent()).create_confirm_delete_dialog()
                     confirm.exec_()
                     if confirm.result:
-                        self._force_delete()
+                        self._delete()
                     else:
                         return
             elif key == Qt.Key_Left:
@@ -94,7 +94,7 @@ class SelectList(QWidget):
                 return
         GUISignalManager().emit_on_list_count_changed()
 
-    def _force_delete(self):
+    def _delete(self):
         delete_index = self.list.currentRow()
         taked_item: ImageFileData = self.list.takeItem(delete_index).data(Qt.UserRole)
         FileManager.delete_single_file(taked_item)
@@ -118,7 +118,7 @@ class SelectList(QWidget):
             GUISignalManager().emit_on_item_selection_updated(self.list.currentItem().data(Qt.UserRole))
 
     def _save_files(self):
-        if UserSetting.get('AUTO_GENERATE_FOLDER_NAME') == True:
+        if UserSetting.check('AUTO_GENERATE_FOLDER_NAME'):
             FILEMANAGER_CONFIG['SAVE_FILE_NAME'] = ''
         else:
             self._open_set_folder_name_popup()
@@ -132,10 +132,7 @@ class SelectList(QWidget):
         self.save_button.setDisabled(True)
         self.select_count_label.setText(f"Select Count: 0")
         GUISignalManager().emit_on_select_list_save(UserSetting.get('SAVE_MODE'))
-
-        if not UserSetting.get('DISABLE_OPEN_FOLDER_POPUP'):
-            pass
-        else:
+        if not UserSetting.check('DISABLE_OPEN_FOLDER_POPUP'):
             DialogFactory(self.parent()).create_folder_open_dialog(count=len(target_list)).exec_()
 
     def _open_set_folder_name_popup(self):

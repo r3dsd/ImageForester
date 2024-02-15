@@ -69,8 +69,7 @@ class SearchList(QWidget):
                 return
         elif self.list.hasFocus() and self.list.currentItem() is not None:
             if key == Qt.Key_Delete:
-                if UserSetting.get('FORCE_DELETE'):
-                    logger.info("Force Delete is Enabled... deleting...")
+                if UserSetting.check('FORCE_DELETE'):
                     self._force_delete()
                 else:
                     path = self.list.currentItem().data(Qt.UserRole).file_path

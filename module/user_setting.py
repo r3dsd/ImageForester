@@ -104,7 +104,21 @@ class UserSetting:
         except AttributeError as e:
             logger.error(f"AttributeError in UserSetting.get: '{value}' is not a valid value for '{key}'. Using default value.")
 
-    
+    @classmethod
+    def check(cls, key: str, match=None) -> bool:
+        try:
+            value = cls.SETTING.get(key, cls.DEFAULT_SETTING[key])
+            if match is None:
+                logger.info(f"UserSetting Check : {key} : [{value}]")
+                return value
+            else:
+                logger.info(f"UserSetting Check : {key} : [{value}] == [{match}]")
+                return value == match
+        except KeyError as e:
+            logger.error(f"KeyError in UserSetting.check: '{key}' is not a valid setting.")
+        except AttributeError as e:
+            logger.error(f"AttributeError in UserSetting.check: '{value}' is not a valid value for '{key}'.")
+
     @classmethod
     def set(cls, key: str, value: str) -> None:
         logger.info(f"UserSetting Changed: [{key}] : {cls.SETTING[key]} -> {value}")

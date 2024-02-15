@@ -1,7 +1,7 @@
 import os
 
 import send2trash
-from ..user_setting import UserSetting 
+from ..user_setting import UserSetting, SaveModeEnum
 from ..data.data_container import ImageFileData, DataContainer
 from .fileutil import get_save_path, copy_files, move_files
 from ..logger import get_logger
@@ -15,9 +15,9 @@ class FileManager:
         save_mode = UserSetting.get('SAVE_MODE')
         save_folder_path = get_save_path()
         logger.info(f'Save mode: {save_mode}')
-        if save_mode == 'Copy':
+        if save_mode == SaveModeEnum.COPY:
             copy_files(target_file_list, save_folder_path)
-        else:
+        elif save_mode == SaveModeEnum.MOVE:
             move_files(target_file_list, save_folder_path)
             DataContainer.delete_loaded_data(target_file_list)
         return save_folder_path
