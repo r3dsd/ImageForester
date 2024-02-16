@@ -1,18 +1,17 @@
 from module.gui.maingui import MainGui
+from module.logger import get_logger
+import sys
 
-import logging
+logger = get_logger(__name__)
 
-def setup_logging():
-    logging.basicConfig(filename='app_crash.log',
-                        level=logging.ERROR,
-                        format='%(asctime)s - %(levelname)s - %(message)s')
+def error_catch(exc_type, exc_value, exc_traceback):
+    logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+    sys.exit(1)
+
+sys.excepthook = error_catch
 
 def main():
-    setup_logging()
-    try:
-        MainGui()
-    except Exception as e:
-        logging.error("Unhandled exception occurred", exc_info=True)
-        raise
+    MainGui()
+
 if __name__ == "__main__":
     main()

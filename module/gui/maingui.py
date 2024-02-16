@@ -14,13 +14,13 @@ logger = get_logger(__name__)
 
 class MainGui:
     def __init__(self):
-        App = QApplication(sys.argv)
-        App.setStyle('Fusion')
+        self.App = QApplication(sys.argv)
+        self.App.setStyle('Fusion')
         logger.info(f"{PROGRAM_NAME} {PROGRAM_VERSION} Started.")
         UserSetting.load()
         GUISignalManager()
         self._initUI()
-        sys.exit(App.exec_())
+        sys.exit(self.App.exec_())
 
     def _initUI(self):
         self._init_window()

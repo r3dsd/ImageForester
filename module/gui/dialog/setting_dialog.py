@@ -186,7 +186,7 @@ class SettingOptionWidget(QWidget):
             self.option_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             self.option_button.clicked.connect(self.on_path_button_clicked)
 
-        logger.debug(f'Option_{option_name} : {UserSetting.get(option_name)}')
+        logger.debug(f'[{option_name}] : {UserSetting.get(option_name).name}')
 
     def on_state_changed(self, state: int):
         UserSetting.set(self.option_name, True if state else False)
