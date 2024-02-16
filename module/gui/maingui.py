@@ -6,6 +6,7 @@ from module.constants import GUI_STYLE_SHEET, PROGRAM_NAME, PROGRAM_VERSION
 from ..user_setting import UserSetting
 from . import layout as MyLayout
 from .guisignalmanager import GUISignalManager
+from .factory.DialogFactory import DialogFactory
 from .widgets.menubar import MyMenuBar
 from ..logger import get_logger
 from ..r3util.r3path import get_resource_path
@@ -18,7 +19,7 @@ class MainGui:
         self.App.setStyle('Fusion')
         logger.info(f"{PROGRAM_NAME} {PROGRAM_VERSION} Started.")
         UserSetting.load()
-        GUISignalManager()
+        GUISignalManager().on_crashed_program.connect(self.on_crashed_program)
         self._initUI()
         sys.exit(self.App.exec_())
 
@@ -52,3 +53,6 @@ class MainGui:
         _central_Layout.addLayout(top_layout)
         _central_Layout.addLayout(middle_layout)
         _central_Layout.addLayout(bottom_layout)
+
+    def on_crashed_program(self, error_log: str):
+        DialogFactory(self._mainwindow).create_crash_report_dialog(error_log=error_log).exec_()

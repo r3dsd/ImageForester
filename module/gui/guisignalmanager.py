@@ -1,7 +1,5 @@
+from enum import Enum
 from PyQt5.QtCore import QObject, pyqtSignal
-from ..data.imagefiledata import ImageFileData
-
-from ..user_setting import SaveModeEnum
 
 # Special thanks to https://stackoverflow.com/questions/59459770/receiving-pyqtsignal-from-singleton
 class Singleton(type(QObject), type):
@@ -18,14 +16,15 @@ class GUISignalManager(QObject, metaclass=Singleton):
     on_list_count_changed = pyqtSignal()
     on_search_complete = pyqtSignal(object)
     on_load_complete = pyqtSignal()
-    on_item_selection_updated = pyqtSignal(ImageFileData)
+    on_item_selection_updated = pyqtSignal(object) # ImageFileData
     on_load_image_empty = pyqtSignal()
     on_gui_style_changed = pyqtSignal(str)
-    on_select_list_save = pyqtSignal(SaveModeEnum)
+    on_select_list_save = pyqtSignal(Enum) # SaveModeEnum
     on_search_list_send2trash = pyqtSignal(int)
     on_tag_added = pyqtSignal(str)
     on_auto_tagging_finished = pyqtSignal(int)
     on_deleted_loaded_data = pyqtSignal()
+    on_crashed_program = pyqtSignal(str)
 
     _instance = None
 
@@ -52,7 +51,7 @@ class GUISignalManager(QObject, metaclass=Singleton):
     def emit_on_gui_style_changed(self, style):
         self.on_gui_style_changed.emit(style)
 
-    def emit_on_select_list_save(self, mode: SaveModeEnum):
+    def emit_on_select_list_save(self, mode: Enum):
         self.on_select_list_save.emit(mode)
 
     def emit_on_search_list_send2trash(self, count: int):
@@ -66,3 +65,6 @@ class GUISignalManager(QObject, metaclass=Singleton):
 
     def emit_on_deleted_loaded_data(self):
         self.on_deleted_loaded_data.emit()
+
+    def emit_on_crashed_program(self, error_log: str):
+        self.on_crashed_program.emit(error_log)

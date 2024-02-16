@@ -4,6 +4,7 @@ from ...user_setting import UserSetting
 from ...config import FILEMANAGER_CONFIG
 from ..dialog.image_tagger_dialog import ImageTaggerDialog
 from ..dialog.setting_dialog import SettingDialog
+from ..dialog.crashreportdialog import CrashReportDialog
 
 class DialogFactory:
     def __init__(self, parent=None):
@@ -29,6 +30,9 @@ class DialogFactory:
     
     def create_setting_dialog(self, full_setting=False):
         return SettingDialog(self.parent, full_setting)
+    
+    def create_crash_report_dialog(self, error_log=""):
+        return CrashReportDialog(self.parent, error_log)
 
 class LoadingDialog(QProgressDialog):
     progress_update = pyqtSignal(int, str)
