@@ -10,6 +10,8 @@ from .factory.DialogFactory import DialogFactory
 from .widgets.menubar import MyMenuBar
 from ..logger import get_logger
 from ..r3util.r3path import get_resource_path
+from ..data.data_loader import DataLoader
+from .worker import ExtendedWorker
 
 logger = get_logger(__name__)
 
@@ -21,6 +23,11 @@ class MainGui:
         UserSetting.load()
         GUISignalManager().on_crashed_program.connect(self.on_crashed_program)
         self._initUI()
+        if UserSetting.get('AUTO_DATABASE'):
+            GUISignalManager().emit_on_database_load_started()
+            worker = ExtendedWorker(DataLoader.load_from_DB)
+            worker.finished.connect(self.on_database_loaded)
+            worker.start()
         sys.exit(self.App.exec_())
 
     def _initUI(self):
@@ -56,3 +63,6 @@ class MainGui:
 
     def on_crashed_program(self, error_log: str):
         DialogFactory(self._mainwindow).create_crash_report_dialog(error_log=error_log).exec_()
+
+    def on_database_loaded(self):
+        GUISignalManager().emit_on_database_loaded()

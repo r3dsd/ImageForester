@@ -45,6 +45,7 @@ class UserSetting:
         'DISABLE_OPEN_FOLDER_POPUP' : False, # open folder popup show (True, False) Default: False
         'GUI_STYLE' : 'DARK', # GUI Style ('DARK', 'LIGHT', 'LIGHT_GREEN') Default: 'DARK'
         'FORCE_DELETE' : False, # Force delete (True, False) Default: False
+        'AUTO_DATABASE' : False, # on program start, auto load database (True, False) Default: False 
         'AUTO_DELETE_AFTER_TAGGING' : False, # Auto delete after tagging (True, False) Default: False
     }
     @classmethod

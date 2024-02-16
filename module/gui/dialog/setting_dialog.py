@@ -116,12 +116,21 @@ class SettingDialog(QDialog):
                                                                 tooltip_text='Auto Delete After Tagging is for auto delete after tagging',
                                                                 option_mode=OPTION_MODE.CHECKBOX,
                                                                 option_value_text='if checked, auto delete after tagging')
+            # Setting 10 - Auto Database
+            auto_database_row = SettingOptionWidget(parent=self._mainwindow,
+                                                    option_name='AUTO_DATABASE',
+                                                    option_label_text='Auto Database : ',
+                                                    tooltip_text='Auto Database is for auto load database on program start',
+                                                    option_mode=OPTION_MODE.CHECKBOX,
+                                                    option_value_text='if checked, auto load database on program start')
+            
             _image_forest_layout.addWidget(autoload_row)
             _image_forest_layout.addWidget(auto_generate_folder_name_row)
             _image_forest_layout.addWidget(disable_open_folder_popup_row)
             _image_forest_layout.addWidget(force_delete_row)
-            _image_tagger_layout.addWidget(auto_delete_after_tagging_row)
             _image_forest_layout.addWidget(guistyle_row)
+            _image_forest_layout.addWidget(auto_database_row)
+            _image_tagger_layout.addWidget(auto_delete_after_tagging_row)
 
         self.setFixedSize(self.sizeHint())
 

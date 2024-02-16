@@ -25,6 +25,8 @@ class GUISignalManager(QObject, metaclass=Singleton):
     on_auto_tagging_finished = pyqtSignal(int)
     on_deleted_loaded_data = pyqtSignal()
     on_crashed_program = pyqtSignal(str)
+    on_database_load_started = pyqtSignal()
+    on_database_loaded = pyqtSignal()
 
     _instance = None
 
@@ -68,3 +70,11 @@ class GUISignalManager(QObject, metaclass=Singleton):
 
     def emit_on_crashed_program(self, error_log: str):
         self.on_crashed_program.emit(error_log)
+
+    def emit_on_database_load_started(self):
+        self.on_database_load_started.emit()
+
+    def emit_on_database_loaded(self):
+        self.on_database_loaded.emit()
+
+    

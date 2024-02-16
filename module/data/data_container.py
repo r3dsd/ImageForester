@@ -1,4 +1,5 @@
 from .imagefiledata import ImageFileData
+from .database import DB
 
 from ..logger import get_logger
 import traceback
@@ -16,6 +17,8 @@ class DataContainer:
     searched_data_count: int = 0
 
     _search_keywords: list[str] = []
+
+    database = DB()
 
     @classmethod
     def get_search_keywords(cls) -> list[str]:
@@ -43,6 +46,7 @@ class DataContainer:
         try:
             if type(data) != set:
                 data = set(data)
+            DB().delete_datas(data)
             before_count = cls.loaded_data_count
             cls._loaded_data.difference_update(data)
             cls.loaded_data_count = len(cls._loaded_data)
@@ -52,25 +56,18 @@ class DataContainer:
 
     @classmethod
     def add_loaded_data(cls, data) -> None:
-        if type(data) == ImageFileData:
-            before_count = cls.loaded_data_count
+        before_count = cls.loaded_data_count
+        db = DB()
+        if isinstance(data, ImageFileData):
             cls._loaded_data.add(data)
-            cls.loaded_data_count += 1
-            logger.debug(f"Add loaded data: {before_count} -> {cls.loaded_data_count}")
-        elif type(data) == set:
-            before_count = cls.loaded_data_count
-            cls._loaded_data.update(data)
-            cls.loaded_data_count = len(cls._loaded_data)
-            logger.debug(f"Add loaded data: {before_count} -> {cls.loaded_data_count}")
+            db.add_data(data)
         else:
-            try:
-                set_data = set(data)
-                before_count = cls.loaded_data_count
-                cls._loaded_data.update(set_data)
-                cls.loaded_data_count = len(cls._loaded_data)
-                logger.debug(f"Add loaded data: {before_count} -> {cls.loaded_data_count}")
-            except Exception as e:
-                logger.error(f"Error: {e}\n{traceback.format_exc()}")
+            set_data = data if isinstance(data, set) else set(data)
+            cls._loaded_data.update(set_data)
+            db.add_datas(set_data)
+        cls.loaded_data_count = len(cls._loaded_data)
+        logger.debug(f"Add loaded data: {before_count} -> {cls.loaded_data_count}")
+
     @classmethod
     def get_searched_data(cls) -> set[ImageFileData]:
         return cls._searched_data

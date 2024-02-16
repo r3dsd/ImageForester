@@ -8,28 +8,34 @@ from .stealth_pnginfo import read_info_from_image_stealth
 from ..constants import IMAGE_FORMATS
 from ..user_setting import UserSetting
 from .imagefiledata import ImageFileData
+from .database import DB
 from ..logger import get_logger
 from ..r3util.r3path import process_path
 
 logger = get_logger(__name__)
 
 class DataLoader:
-    _loadable_file_list: list[str] = [] # str : file_path
+    _loadable_file_set: set[str] = set()
+
+    @classmethod
+    def load_from_DB(cls) -> None:
+        logger.info("Load Data from Database")
+        data = DB().get_data()
+        DataContainer.set_loaded_data(data)
 
     @classmethod
     def load_using_multi(cls) -> None:
         """
         Load image from _loadable_file_list
         """
-        DataContainer.clear()
-        def process_file(file_path) -> ImageFileData:
+        def process_file(file_path: str) -> ImageFileData:
             image_file_data, is_acessable = get_png_description(file_path)
             if is_acessable:
                 image_file_data.process_file_tags()
                 return image_file_data
             return None
         
-        files_to_process = cls._loadable_file_list
+        files_to_process = list(cls._loadable_file_set)
 
         max_workers = 4
         results: set[ImageFileData] = set()
@@ -37,23 +43,29 @@ class DataLoader:
             for result in executor.map(process_file, files_to_process):
                     if result is not None:
                         results.add(result)
+        
         result_path_list: list[str] = [result.file_path for result in results]
-
         load_failed_data = set(files_to_process) - set(result_path_list)
         DataContainer.set_load_failed_data(load_failed_data)
-
-        cls._loadable_file_list.clear()
-        DataContainer.set_loaded_data(results)
+        cls._loadable_file_set.clear()
+        # Update Database
+        final_results = results.union(DB().get_data())
+        DB().add_datas(results)
+        DataContainer.add_loaded_data(final_results)
 
     @classmethod
     def get_loadable_count(cls, directory_path: str) -> int:
-        count = 0
         for root, _, files in os.walk(directory_path):
             for file_name in files:
                 if file_name.split('.')[-1].lower() in IMAGE_FORMATS:
                     path = process_path(os.path.join(root, file_name))
-                    cls._loadable_file_list.append(path)
-                    count += 1
+                    cls._loadable_file_set.add(path)
+        # Remove already exist in database
+        logger.debug(f"All File : {len(cls._loadable_file_set)}")
+        db_paths = DB().get_db_paths()
+        cls._loadable_file_set.difference_update(db_paths)
+        count = len(cls._loadable_file_set)
+        logger.debug(f"Need to Load : {count}")
         return count
     
 def get_png_description(file_path) -> tuple[ImageFileData, bool]:

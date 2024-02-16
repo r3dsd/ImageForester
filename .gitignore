@@ -6,6 +6,7 @@ __pycache__/
 # Image Forest files
 User_Settings.json
 module/model/*
+database.db
 
 # C extensions
 *.so

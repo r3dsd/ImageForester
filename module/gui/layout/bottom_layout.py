@@ -56,6 +56,8 @@ class BottomLayout(QBoxLayout):
         GUISignalManager().on_tag_added.connect(self._on_tag_added)
         GUISignalManager().on_auto_tagging_finished.connect(self._on_auto_tagging_finished)
         GUISignalManager().on_deleted_loaded_data.connect(self._update_count_label)
+        GUISignalManager().on_database_load_started.connect(self._on_database_load_started)
+        GUISignalManager().on_database_loaded.connect(self._on_database_loaded)
 
     def _on_option_button_clicked(self):
         DialogFactory(self._mainwindow).create_setting_dialog()
@@ -93,3 +95,11 @@ class BottomLayout(QBoxLayout):
 
     def _update_count_label(self):
         self.load_count_label.setText(f"Loaded {DataContainer.loaded_data_count}")
+
+    def _on_database_load_started(self):
+        self.info_console.setText("Loading images from the database...")
+
+    def _on_database_loaded(self):
+        self.info_console.setText(f"Successfully loaded {DataContainer.loaded_data_count} images from the database.")
+        self.path_selector.path_label.setText("Loaded from Database. If you want to load from folder, please select the folder.")
+        self._update_count_label()
