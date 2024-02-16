@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QVBoxLayout, QPushButton, QFileDialog, QSizePolicy, QComboBox, QCheckBox, QWidget
+from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QVBoxLayout, QPushButton, QFileDialog, QSizePolicy, QComboBox, QCheckBox, QWidget, QFrame, QGroupBox
 from PyQt5.QtCore import Qt
 from enum import Enum, auto
 
@@ -13,7 +13,6 @@ class SettingDialog(QDialog):
         super().__init__(parent)
         self.full_setting = full_setting
         self._mainwindow = parent
-        logger.debug(f"SettingDialog mainwindow : {self._mainwindow}")
         self._initUI()
         self.exec_()
 
@@ -21,8 +20,30 @@ class SettingDialog(QDialog):
         self.setWindowTitle('User Setting')
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint | Qt.CustomizeWindowHint)
 
-        _layout = QVBoxLayout()
+        _layout = QHBoxLayout()
         self.setLayout(_layout)
+
+        _image_forest_layout = QVBoxLayout()
+        _image_forest_layout.setAlignment(Qt.AlignTop)
+
+        frame = QFrame()
+        frame.setFrameShape(QFrame.VLine)
+        frame.setFrameShadow(QFrame.Sunken)
+        frame.hide()
+        _layout.addWidget(frame)
+
+        _image_tagger_layout = QVBoxLayout()
+        _image_tagger_layout.setAlignment(Qt.AlignTop)
+
+        _forest_group = QGroupBox('Basic Setting')
+        _tagger_group = QGroupBox('Image Tagger Setting')
+        _tagger_group.hide()
+
+        _forest_group.setLayout(_image_forest_layout)
+        _tagger_group.setLayout(_image_tagger_layout)
+
+        _layout.addWidget(_forest_group)
+        _layout.addWidget(_tagger_group)
 
         # Setting 1 - Save Path
         savepath_row = SettingOptionWidget(parent=self._mainwindow, 
@@ -45,11 +66,13 @@ class SettingDialog(QDialog):
                                             option_mode=OPTION_MODE.CHECKBOX,
                                             option_value_text='if checked, will be more find description from image pixel')
 
-        _layout.addWidget(savepath_row)
-        _layout.addWidget(savemode_row)
-        _layout.addWidget(stealthmode_row)
+        _image_forest_layout.addWidget(savepath_row)
+        _image_forest_layout.addWidget(savemode_row)
+        _image_forest_layout.addWidget(stealthmode_row)
 
         if self.full_setting:
+            frame.show()
+            _tagger_group.show()
             self.setWindowTitle('User Setting (Full)')
             # Setting 4 - autoload
             autoload_row = SettingOptionWidget(parent=self._mainwindow,
@@ -93,12 +116,12 @@ class SettingDialog(QDialog):
                                                                 tooltip_text='Auto Delete After Tagging is for auto delete after tagging',
                                                                 option_mode=OPTION_MODE.CHECKBOX,
                                                                 option_value_text='if checked, auto delete after tagging')
-            _layout.addWidget(autoload_row)
-            _layout.addWidget(guistyle_row)
-            _layout.addWidget(auto_generate_folder_name_row)
-            _layout.addWidget(disable_open_folder_popup_row)
-            _layout.addWidget(force_delete_row)
-            _layout.addWidget(auto_delete_after_tagging_row)
+            _image_forest_layout.addWidget(autoload_row)
+            _image_forest_layout.addWidget(auto_generate_folder_name_row)
+            _image_forest_layout.addWidget(disable_open_folder_popup_row)
+            _image_forest_layout.addWidget(force_delete_row)
+            _image_tagger_layout.addWidget(auto_delete_after_tagging_row)
+            _image_forest_layout.addWidget(guistyle_row)
 
         self.setFixedSize(self.sizeHint())
 
@@ -122,7 +145,6 @@ class SettingOptionWidget(QWidget):
         super().__init__(parent)
         self.option_name = option_name
         self._mainwindow = parent
-        logger.debug(f"SettingOptionWidget mainwindow : {self._mainwindow}")
         option_row = QHBoxLayout()
         option_row.setContentsMargins(0, 0, 0, 0)
         self.setLayout(option_row)
@@ -155,7 +177,7 @@ class SettingOptionWidget(QWidget):
             self.option_value = QLabel(UserSetting.get(option_name))
             option_row.addWidget(self.option_value)
             self.option_value.setToolTip(tooltip_text)
-            self.option_value.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+            self.option_value.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
             self.option_button = QPushButton('. . .')
             option_row.addWidget(self.option_button)
             self.option_button.setToolTip('Select Save Path')

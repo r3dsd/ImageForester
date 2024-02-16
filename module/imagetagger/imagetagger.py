@@ -126,7 +126,7 @@ class ImageTagger:
                 tag_outformat = re.sub(RE_SPECIAL, r"\\\1", tag_outformat)
             text_items.append(tag_outformat)
         output_text = ", ".join(text_items)
-
+        
         return ratings, output_text, filtered_tags
     
     def _has_description(self, image) -> bool:

@@ -85,7 +85,7 @@ def get_png_description(file_path) -> tuple[ImageFileData, bool]:
             else:
                 f.seek(chunk_length, 1)
             f.read(4)
-    if UserSetting.get('STEALTH_MODE') == 'True':
+    if UserSetting.check('STEALTH_MODE'):
         with Image.open(file_path) as img:
             tmp = read_info_from_image_stealth(img)
             if tmp:

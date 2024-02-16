@@ -1,10 +1,13 @@
 from PIL import Image
 import gzip
+
 # from https://github.com/neggles/sd-webui-stealth-pnginfo/
 
 def read_info_from_image_stealth(image):
     # trying to read stealth pnginfo
     width, height = image.size
+    if width > 2000 or height > 2000:
+        return None
     pixels = image.load()
 
     has_alpha = True if image.mode == 'RGBA' else False

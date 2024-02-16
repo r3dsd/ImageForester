@@ -31,7 +31,6 @@ class MainGui:
 
     def _init_window(self):
         self._mainwindow = QMainWindow()
-        logger.debug(f"Main Window Created. {self._mainwindow}")
         self._mainwindow.setWindowTitle(f"{PROGRAM_NAME} {PROGRAM_VERSION}")
         self._mainwindow.setWindowIcon(QIcon(get_resource_path('icon.ico')))
         self._mainwindow.setGeometry(100, 100, 1280, 720)

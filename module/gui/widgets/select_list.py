@@ -98,6 +98,7 @@ class SelectList(QWidget):
         delete_index = self.list.currentRow()
         taked_item: ImageFileData = self.list.takeItem(delete_index).data(Qt.UserRole)
         FileManager.delete_single_file(taked_item)
+        GUISignalManager().emit_on_deleted_loaded_data()
 
     def _move_item(self):
         taked_index = self.list.currentRow()
