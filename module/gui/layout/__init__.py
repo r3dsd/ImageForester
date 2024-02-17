@@ -1,5 +1,3 @@
-# layout/__init__.py
-
-from .top_layout import TopLayout
-from .middle_layout import MiddleLayout
-from .bottom_layout import BottomLayout
+from .search_layout import SearchLayout
+from .sort_layout import SortLayout
+from .tagger_layout import TaggerLayout

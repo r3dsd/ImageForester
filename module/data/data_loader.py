@@ -3,7 +3,7 @@ import os
 import struct
 import concurrent.futures
 from PIL import Image
-from .data_container import DataContainer
+from . import DataStorage
 from .stealth_pnginfo import read_info_from_image_stealth
 from ..constants import IMAGE_FORMATS
 from ..user_setting import UserSetting
@@ -15,16 +15,18 @@ from ..r3util.r3path import process_path
 logger = get_logger(__name__)
 
 class DataLoader:
-    _loadable_file_set: set[str] = set()
+    _loadable_files: set[str] = set()
 
     @classmethod
-    def load_from_DB(cls) -> None:
+    def load_from_DB(cls, storage : DataStorage) -> None:
         logger.info("Load Data from Database")
         data = DB().get_data()
-        DataContainer.set_loaded_data(data)
+        storage.set_loaded_data(data)
 
     @classmethod
-    def load_using_multi(cls) -> None:
+    def load_using_multi(cls, 
+                        use_DB: bool = False, 
+                        datastorage : DataStorage = None) -> None:
         """
         Load image from _loadable_file_list
         """
@@ -35,37 +37,50 @@ class DataLoader:
                 return image_file_data
             return None
         
-        files_to_process = list(cls._loadable_file_set)
+        files_to_process = list(cls._loadable_files)
 
         max_workers = 4
+        logger.info(f"{len(cls._loadable_files)} Images... Using Multi Thread (max_workers=4, Use_DB={use_DB})")
         results: set[ImageFileData] = set()
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             for result in executor.map(process_file, files_to_process):
                     if result is not None:
                         results.add(result)
-        
         result_path_list: list[str] = [result.file_path for result in results]
         load_failed_data = set(files_to_process) - set(result_path_list)
-        DataContainer.set_load_failed_data(load_failed_data)
-        cls._loadable_file_set.clear()
+        logger.info(f"Load Complete. {len(results)} Images Loaded. {len(load_failed_data)} Images Failed to Load")
+        datastorage.set_load_failed_data(load_failed_data)
         # Update Database
-        final_results = results.union(DB().get_data())
         DB().add_datas(results)
-        DataContainer.add_loaded_data(final_results)
+        final_results = results
+        
+        if use_DB:
+            logger.debug("Using DB... Adding failed data to DB")
+            DB().add_no_tags_datas(load_failed_data)
+            db_data = DB().get_data()
+            final_results = final_results.union(db_data)
+        datastorage.set_loaded_data(final_results)
+        cls._loadable_files.clear()
+
 
     @classmethod
-    def get_loadable_count(cls, directory_path: str) -> int:
-        for root, _, files in os.walk(directory_path):
-            for file_name in files:
-                if file_name.split('.')[-1].lower() in IMAGE_FORMATS:
-                    path = process_path(os.path.join(root, file_name))
-                    cls._loadable_file_set.add(path)
-        # Remove already exist in database
-        logger.debug(f"All File : {len(cls._loadable_file_set)}")
-        db_paths = DB().get_db_paths()
-        cls._loadable_file_set.difference_update(db_paths)
-        count = len(cls._loadable_file_set)
-        logger.debug(f"Need to Load : {count}")
+    def get_loadable_count(cls, directory_path: str, use_DB=False) -> int:
+        logger.debug(f"Counting Loadable Images in {directory_path}... (Use_DB={use_DB})")
+        cls._loadable_files = {
+            process_path(os.path.join(root, file_name))
+            for root, _, files in os.walk(directory_path)
+            for file_name in files
+            if file_name.split('.')[-1].lower() in IMAGE_FORMATS
+        }
+        logger.debug(f"Total {len(cls._loadable_files)} images found")
+        # If using database, remove files already present in database
+        if use_DB:
+            logger.debug("Using DB... Removing already exist in DB")
+            existing_in_db = DB().get_db_paths()
+            cls._loadable_files.difference_update(existing_in_db)
+
+        count = len(cls._loadable_files)
+        logger.debug(f"need to load {count} images")
         return count
     
 def get_png_description(file_path) -> tuple[ImageFileData, bool]:

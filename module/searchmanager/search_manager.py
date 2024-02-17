@@ -1,5 +1,4 @@
-from ..data.data_container import DataContainer
-from ..data.imagefiledata import ImageFileData
+from ..data import ImageFileData
 
 from ..logger import get_logger
 
@@ -7,7 +6,7 @@ logger = get_logger(__name__)
 
 class SearchManager:
     @staticmethod
-    def search(search_keywords: list[str]):
+    def search(data: set[ImageFileData], search_keywords: list[str]) -> set[ImageFileData]:
         result: set[ImageFileData] = set()
 
         normal_keywords = []
@@ -31,7 +30,7 @@ class SearchManager:
         logger.info(f"exact_keywords: {exact_keywords}")
         logger.info(f"negated_exact_keywords: {negated_exact_keywords}")
 
-        for image_info in DataContainer.get_loaded_data():
+        for image_info in data:
             match = True
 
             # Normal keyword search

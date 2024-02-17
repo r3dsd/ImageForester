@@ -1,21 +1,21 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget
 from PyQt5.QtGui import QIcon
 
 from module.constants import GUI_STYLE_SHEET, PROGRAM_NAME, PROGRAM_VERSION
 from ..user_setting import UserSetting
-from . import layout as MyLayout
-from .guisignalmanager import GUISignalManager
+from .tab import SearchTab, SortTab, TaggerTab
+from .guisignalmanager import GUISignalManager, GUISearchSignalManager
 from .factory.DialogFactory import DialogFactory
 from .widgets.menubar import MyMenuBar
 from ..logger import get_logger
 from ..r3util.r3path import get_resource_path
-from ..data.data_loader import DataLoader
+from ..data import DataLoader
 from .worker import ExtendedWorker
 
 logger = get_logger(__name__)
 
-class MainGui:
+class App:
     def __init__(self):
         self.App = QApplication(sys.argv)
         self.App.setStyle('Fusion')
@@ -24,9 +24,9 @@ class MainGui:
         GUISignalManager().on_crashed_program.connect(self.on_crashed_program)
         self._initUI()
         if UserSetting.get('AUTO_DATABASE'):
-            GUISignalManager().emit_on_database_load_started()
+            GUISearchSignalManager().emit_on_auto_database_load_started()
             worker = ExtendedWorker(DataLoader.load_from_DB)
-            worker.finished.connect(self.on_database_loaded)
+            worker.finished.connect(self.emit_auto_database_load_finished)
             worker.start()
         sys.exit(self.App.exec_())
 
@@ -48,21 +48,15 @@ class MainGui:
         self._mainwindow.setMenuBar(self.menubar)
 
     def _init_central_widget(self):
-        _central_widget = QWidget()
-        _central_Layout = QVBoxLayout()
-        _central_widget.setLayout(_central_Layout)
+        _central_widget = QTabWidget()
         self._mainwindow.setCentralWidget(_central_widget)
 
-        top_layout = MyLayout.TopLayout(self._mainwindow)
-        middle_layout = MyLayout.MiddleLayout(self._mainwindow)
-        bottom_layout = MyLayout.BottomLayout(self._mainwindow)
-
-        _central_Layout.addLayout(top_layout)
-        _central_Layout.addLayout(middle_layout)
-        _central_Layout.addLayout(bottom_layout)
+        _central_widget.addTab(SearchTab(self._mainwindow), "Search")
+        _central_widget.addTab(SortTab(self._mainwindow), "Sort")
+        _central_widget.addTab(TaggerTab(self._mainwindow), "Tagger")
 
     def on_crashed_program(self, error_log: str):
         DialogFactory(self._mainwindow).create_crash_report_dialog(error_log=error_log).exec_()
 
-    def on_database_loaded(self):
-        GUISignalManager().emit_on_database_loaded()
+    def emit_auto_database_load_finished(self):
+        GUISearchSignalManager().emit_on_auto_database_load_finished()

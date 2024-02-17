@@ -3,9 +3,8 @@ import shutil
 import os
 import re
 import threading
-from ..data.data_container import ImageFileData
+from ..data import ImageFileData
 from ..user_setting import UserSetting
-from ..data.data_container import DataContainer
 from ..r3util.r3path import get_defalut_save_path, process_path
 from ..config import FILEMANAGER_CONFIG
 
@@ -68,7 +67,7 @@ def generate_unique_file_path(original_path, save_folder_path, savemode: str):
     return full_path
 
 
-def get_save_path():
+def get_save_path(search_keyword: list[str] = []):
     """
     return the save folder path
     """
@@ -80,7 +79,7 @@ def get_save_path():
     if save_folder_name != '':
         base_save_folder_path = os.path.join(base_save_folder_path, save_folder_name)
     else:
-        string = create_folder_name_using_search_keyword()
+        string = create_folder_name_using_search_keyword(search_keyword)
         base_save_folder_path = os.path.join(base_save_folder_path, string)
 
     logger.info(f'Set Save folder path: {base_save_folder_path}')
@@ -93,8 +92,7 @@ def get_save_path():
     FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH'] = base_save_folder_path
     return base_save_folder_path
 
-def create_folder_name_using_search_keyword():
-    search_keyword = DataContainer.get_search_keywords()
+def create_folder_name_using_search_keyword(search_keyword: list[str] = []):
     logger.info(f'Create folder name using search keyword: {search_keyword}')
     string = '_'.join(search_keyword)
     string = re.sub(r'[\\/:*?"<>|~!]', '', string)

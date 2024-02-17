@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QListWidget, QListWidgetItem
 
 class R3HistoryData(ABC):
     """
-    undo/redo를 위한 추상클래스
+    undo/redo abstract class
     """
     @abstractmethod
     def rollback(self):
@@ -11,7 +11,7 @@ class R3HistoryData(ABC):
 
 class R3RemoveHistory(R3HistoryData):
     """
-    이미지 삭제 작업단위
+    remove history
     """
     def __init__(self, source: QListWidget, item: QListWidgetItem, item_index: int):
         self.source = source
@@ -19,7 +19,6 @@ class R3RemoveHistory(R3HistoryData):
         self.item_index = item_index
 
     def rollback(self):
-        # 아이템을 되돌립니다.
         self.source.insertItem(self.item_index, self.item)
         self.source.setFocus()
         self.source.scrollToItem(self.item)
@@ -31,7 +30,7 @@ class R3RemoveHistory(R3HistoryData):
     
 class R3MoveHistory(R3HistoryData):
     """
-    이미지 이동 작업단위
+    move history
     """
     def __init__(self, source: QListWidget, destination: QListWidget, item: QListWidgetItem, source_index: int):
         self.source = source
@@ -40,7 +39,6 @@ class R3MoveHistory(R3HistoryData):
         self.source_index = source_index
 
     def rollback(self):
-        # 아이템을 되돌립니다.
         taked_item = self.destination.takeItem(self.destination.row(self.item))
         self.source.insertItem(self.source_index, taked_item)
         self.source.setFocus()

@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QListWidget
 from PyQt5.QtWidgets import QMenu
 from PyQt5.QtCore import Qt
 
-from ....data.imagefiledata import ImageFileData
+from ....data import ImageFileData
 
 from ....logger import get_logger
 import traceback

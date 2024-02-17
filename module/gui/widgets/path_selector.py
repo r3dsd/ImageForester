@@ -1,18 +1,21 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QSizePolicy, QFileDialog, QDialog
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from ..worker import ExtendedWorker
-from ...data.data_loader import DataLoader
+from ...data import DataLoader
 from ..factory.DialogFactory import DialogFactory
 from ...user_setting import UserSetting
-from ..guisignalmanager import GUISignalManager
 
 from ...logger import get_logger
 
 logger = get_logger(__name__)
 
 class PathSelector(QWidget):
-    def __init__(self, mainwindow):
+    on_load_complete = pyqtSignal()
+
+    def __init__(self, mainwindow, use_DB=False, datastorage=None):
         super().__init__(mainwindow)
+        self.use_DB = use_DB
+        self.datastorage = datastorage
         self.mainwindow = mainwindow
         self._init_ui()
 
@@ -43,14 +46,17 @@ class PathSelector(QWidget):
             QTimer.singleShot(0, lambda: self._start_loadable_count_worker(sourcepath))
 
     def _start_loadable_count_worker(self, sourcepath):
-        self.worker = ExtendedWorker(DataLoader.get_loadable_count, sourcepath)
+        self.worker = ExtendedWorker(DataLoader.get_loadable_count, sourcepath, self.use_DB)
         self.worker.result.connect(self._on_loadable_counting_finished)
         self.worker.finished.connect(lambda: logger.info("worker finished."))
         self.worker.start()
 
+    def set_path_label(self, text):
+        self.path_label.setText(text)
+
     def _on_loadable_counting_finished(self, count):
         if count == 0:
-            GUISignalManager().emit_on_load_image_empty()
+            self._on_load_complete(0)
             return
         
         if UserSetting.get('AUTO_LOAD') == True:
@@ -63,10 +69,10 @@ class PathSelector(QWidget):
             self._image_load()
 
     def _image_load(self):
-        self.worker = ExtendedWorker(DataLoader.load_using_multi)
+        self.worker = ExtendedWorker(DataLoader.load_using_multi, self.use_DB, self.datastorage)
         self.worker.finished.connect(self._on_load_complete)
         self.worker.start()
 
     def _on_load_complete(self):
-        GUISignalManager().on_load_complete.emit()
+        self.on_load_complete.emit()
         logger.info("Image Load Complete.") 

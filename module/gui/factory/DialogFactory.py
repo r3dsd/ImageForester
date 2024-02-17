@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLab
 from PyQt5.QtCore import Qt, pyqtSignal
 from ...user_setting import UserSetting
 from ...config import FILEMANAGER_CONFIG
-from ..dialog.image_tagger_dialog import ImageTaggerDialog
 from ..dialog.setting_dialog import SettingDialog
 from ..dialog.crashreportdialog import CrashReportDialog
 
@@ -21,9 +20,6 @@ class DialogFactory:
     
     def create_folder_open_dialog(self, count):
         return FolderOpenDialog(self.parent, count)
-    
-    def create_image_tagger_dialog(self):
-        return ImageTaggerDialog(self.parent)
     
     def create_loading_dialog(self):
         return LoadingDialog(self.parent)

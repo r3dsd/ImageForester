@@ -17,11 +17,6 @@ class R3HistoryManager:
         return task
 
     @classmethod
-    def add_delete_history(cls, source, item, item_index):
-        task = cls.add_history(R3RemoveHistory(source, item, item_index))
-        logger.info(f"{task} from {source.objectName()}")
-
-    @classmethod
     def add_move_history(cls, source, destination, item, source_index):
         task = cls.add_history(R3MoveHistory(source, destination, item, source_index))
         logger.info(f"{task} from {source.objectName()} to {destination.objectName()}")
