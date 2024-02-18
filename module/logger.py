@@ -45,7 +45,7 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(formatter)
 stream_handler.addFilter(CustomFilter())
 
-logger = logging.getLogger('ImageForester')
+logger = logging.getLogger('i')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(memory_handler)
 logger.addHandler(stream_handler)

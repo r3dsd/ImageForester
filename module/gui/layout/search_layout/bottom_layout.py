@@ -7,9 +7,8 @@ from ...factory.DialogFactory import DialogFactory
 from ....r3util.r3lib import HighlightingText
 from ....user_setting import SaveModeEnum
 from ....config import FILEMANAGER_CONFIG
-from ...guisignalmanager import GUISearchSignalManager
+from ...guisignalmanager import GUISearchSignalManager, GUISignalManager
 from ...widgets.path_selector import PathSelector
-from ....data import DB
 
 from ....logger import get_logger
 
@@ -69,6 +68,8 @@ class BottomLayout(QVBoxLayout):
         search_signal_manager.on_search_completed.connect(self._on_search_completed)
         search_signal_manager.on_auto_database_load_started.connect(self._on_database_load_started)
         search_signal_manager.on_auto_database_load_finished.connect(self._on_database_load_finished)
+        
+        GUISignalManager().on_tag_added.connect(self._on_tag_added)
 
     def __on_option_button_clicked(self):
         DialogFactory(self._mainwindow).create_setting_dialog()
@@ -115,10 +116,18 @@ class BottomLayout(QVBoxLayout):
         self.info_console.setText("Loading images from the database...")
 
     def _on_database_load_finished(self):
+        logger.debug(f"Database load finished. {self._datastorage}")
         count = self._datastorage.get_loaded_data_count()
         self.path_selector.set_path_label(f"Succesfully connected to the database. Loaded {count} images.")
         self.info_console.setText(f"Successfully loaded {count} images")
         self.load_count_label.setText(f"Loaded {count}")
+        GUISignalManager().emit_on_load_complete(self._datastorage.get_no_tag_data())
 
     def _on_search_completed(self, _, count):
         self.info_console.setText(f"Search Completed. {count} images found.")
+
+    def _on_tag_added(self, data, count):
+        self._datastorage.add_loaded_data(data)
+        self._datastorage.clear_no_tag_data()
+        self.info_console.setText(f"Successfully added tags to {count} images.")
+        self._update_count_label(self._datastorage.get_loaded_data_count())

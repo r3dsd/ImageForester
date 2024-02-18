@@ -9,12 +9,14 @@ from PIL import Image
 from onnxruntime import InferenceSession
 from typing import Mapping, Tuple, Dict
 from tqdm import tqdm
+import send2trash
+
 from ..config import TAGGER_CONFIG
 from ..user_setting import UserSetting
 from ..HuggingFaceDownloader.HuggingFaceDownloader import HFDownloader
 from ..logger import get_logger
 from ..r3util.r3path import process_path
-import send2trash
+from ..data import DB
 
 logger = get_logger(__name__)
 
@@ -194,12 +196,6 @@ class ImageTagger:
                 results.append((new_file_path, tags_text))
                 logger.info(f"Tags added to {file_path}")
         logger.info(f"Auto Tagging Finished")
-        if UserSetting.get('AUTO_DELETE_AFTER_TAGGING'):
-                count = len(results)
-                logger.info(f"AUTO_DELETE_AFTER_TAGGING Enabled... moved to trash {count} images.")
-                logger.info(f"Trash targets: {source_file_path_list}")
-                send2trash.send2trash(source_file_path_list)
-                logger.info(f"Succesfully moved to trash {count} images.")
         return results
 
 def add_tag(png_file_path, text_value):
@@ -225,11 +221,11 @@ def add_tag(png_file_path, text_value):
     save_directory = os.path.join(os.path.dirname(png_file_path), "taged_images")
     os.makedirs(save_directory, exist_ok=True)
     new_file_path = os.path.join(save_directory, os.path.basename(png_file_path).rsplit('.', 1)[0] + "_with_tags.png")
+    counter = 1
+    while os.path.exists(new_file_path):
+        new_file_path = os.path.join(save_directory, os.path.basename(png_file_path).rsplit('.', 1)[0] + f"_with_tags_{counter}.png")
+        counter += 1
     with open(new_file_path, 'wb') as f:
         f.write(new_png_data)
     logger.info(f"Succesfully added tag to {png_file_path}")
-    if UserSetting.get('AUTO_DELETE_AFTER_TAGGING'):
-        logger.info(f"AUTO_DELETE_AFTER_TAGGING Enabled... {png_file_path} moved to trash")
-        send2trash.send2trash(png_file_path)
-        logger.info(f"Succesfully moved to trash {png_file_path}")
     return new_file_path

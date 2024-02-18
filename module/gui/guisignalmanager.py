@@ -78,14 +78,6 @@ class GUISortSignalManager(QObject, metaclass=Singleton):
         self.on_select_list_saved.emit(mode)
 
 class GUITaggerSignalManager(QObject, metaclass=Singleton):
-    on_item_selection_updated = pyqtSignal(object) # ImageFileData
-    on_load_complete = pyqtSignal()
-    on_load_image_empty = pyqtSignal()
-    on_tag_added = pyqtSignal(str)
-    on_auto_tagging_finished = pyqtSignal(int)
-    on_deleted_loaded_data = pyqtSignal()
-    on_database_load_started = pyqtSignal()
-    on_database_loaded = pyqtSignal()
 
     _instance = None
 
@@ -93,33 +85,14 @@ class GUITaggerSignalManager(QObject, metaclass=Singleton):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    
-    def emit_on_item_selection_updated(self, data):
-        self.on_item_selection_updated.emit(data)
-
-    def emit_on_load_complete(self):
-        self.on_load_complete.emit()
-    
-    def emit_on_load_image_empty(self):
-        self.on_load_image_empty.emit()
-
-    def emit_on_tag_added(self, path: str):
-        self.on_tag_added.emit(path)
-    
-    def emit_on_auto_tagging_finished(self, count: int):
-        self.on_auto_tagging_finished.emit(count)
-
-    def emit_on_deleted_loaded_data(self):
-        self.on_deleted_loaded_data.emit()
-
-    def emit_on_database_load_started(self):
-        self.on_database_load_started.emit()
 
 class GUISignalManager(QObject, metaclass=Singleton):
     # using for all layout
-    on_auto_tagging_finished = pyqtSignal(int)
-    on_load_complete = pyqtSignal()
     on_crashed_program = pyqtSignal(str)
+    # from search_layout, sort_layout
+    on_load_complete = pyqtSignal(object) # load failed data (object is set[str(path)])
+    # from tagger_layout
+    on_tag_added = pyqtSignal(object, int) # ImageFileData or ImageFileData list
 
     _instance = None
 
@@ -127,12 +100,12 @@ class GUISignalManager(QObject, metaclass=Singleton):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    
-    def emit_on_auto_tagging_finished(self, count: int):
-        self.on_auto_tagging_finished.emit(count)
 
     def emit_on_crashed_program(self, error_log: str):
         self.on_crashed_program.emit(error_log)
 
-    def emit_on_load_complete(self):
-        self.on_load_complete.emit()
+    def emit_on_load_complete(self, data):
+        self.on_load_complete.emit(data)
+
+    def emit_on_tag_added(self, data, count):
+        self.on_tag_added.emit(data, count)

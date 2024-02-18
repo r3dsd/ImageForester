@@ -5,7 +5,7 @@ import shutil
 
 import send2trash
 from ..user_setting import UserSetting, SaveModeEnum
-from ..data import ImageFileData, DataStorage, DB, SearchDataStorage
+from ..data import ImageFileData, DataStorage, DB
 from ..logger import get_logger
 from ..user_setting import UserSetting
 from ..r3util.r3path import get_defalut_save_path, process_path

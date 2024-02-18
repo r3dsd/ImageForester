@@ -42,8 +42,7 @@ class DataLoader:
         load_failed_data = set(files_to_process) - set(result_path_list)
         logger.info(f"Load Complete. {len(results)} Images Loaded. {len(load_failed_data)} Images Failed to Load")
 
-        datastorage.set_load_failed_data(load_failed_data)
-        datastorage.set_loaded_data(results)
+        datastorage.set_data(results, load_failed_data)
         cls._loadable_files.clear()
 
 
@@ -60,7 +59,7 @@ class DataLoader:
         # If using database, remove files already present in database
         if use_DB:
             logger.debug("Using DB... Removing already exist in DB")
-            existing_in_db = DB("DataLoader").get_db_paths()
+            existing_in_db = DB("DataLoader").get_all_paths_from_image_table()
             cls._loadable_files.difference_update(existing_in_db)
 
         count = len(cls._loadable_files)
@@ -86,12 +85,12 @@ def get_png_description(file_path) -> tuple[ImageFileData, bool]:
                     key = key.decode('latin1')
                     if key == "Description":
                         value = value.decode('latin1')
-                        logger.info(f"sucessfully extracted from Description : {file_path}")
+                        logger.debug(f"sucessfully extracted from Description : {file_path}")
                         return (ImageFileData(file_path, value), True)
                     elif key == "Comment":
                         value = value.decode('latin1')
                         prompt_data = json.loads(value)['prompt']
-                        logger.info(f"sucessfully extracted from Comment : {file_path}")
+                        logger.debug(f"sucessfully extracted from Comment : {file_path}")
                         return (ImageFileData(file_path, prompt_data), True)
             else:
                 f.seek(chunk_length, 1)
@@ -100,7 +99,7 @@ def get_png_description(file_path) -> tuple[ImageFileData, bool]:
         with Image.open(file_path) as img:
             tmp = read_info_from_image_stealth(img)
             if tmp:
-                logger.info(f"Description sucessfully extracted from Stealth data : {file_path}")
+                logger.debug(f"Description sucessfully extracted from Stealth data : {file_path}")
                 desc = json.loads(tmp)['Description']
                 return (ImageFileData(file_path, desc), True)
     logger.warning(f"Description Not Found : {file_path}")

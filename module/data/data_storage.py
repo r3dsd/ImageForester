@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from .imagefiledata import ImageFileData, ImageFileDataFactory
 from .database import DB
 
@@ -12,34 +13,48 @@ class DataStorage:
         logger.debug(f"Create DataStorage: {name}")
         self._loaded_data = set()
         self._loaded_data_count = 0
-        self._load_failed_data = set()
-        self._load_failed_data_count = 0
+        self._no_tag_data = set()
+        self._no_tag_data_count = 0
         self._searched_data = set()
         self._searched_data_count = 0
         self._search_keywords = []
 
     def __str__(self):
-        return f"[{self.name}] - Loaded: {self._loaded_data_count}, No Description: {self._load_failed_data_count}, Searched: {self._searched_data_count}"
+        return f"[{self.name}] - Loaded: {self._loaded_data_count}, No Description: {self._no_tag_data_count}, Searched: {self._searched_data_count}"
     
     def clear(self) -> None:
         self._loaded_data.clear()
         self._loaded_data_count = 0
-        self._load_failed_data.clear()
-        self._load_failed_data_count = 0
+        self._no_tag_data.clear()
+        self._no_tag_data_count = 0
         self._searched_data.clear()
         self._searched_data_count = 0
         self._search_keywords.clear()
         logger.debug(f"{self.name} - Data cleared")
 
     def load_from_DB(self) -> bool:
-        logger.info(f"Load Data from Database")
-        data = DB(self.name).get_data()
+        logger.info(f"load_from_DB: {self.name} Started...")
+        db = DB(self.name)
+        data = db.get_data()
+        load_fail_datas = db.get_no_tags_datas()
         if len(data) == 0:
             logger.debug(f"Database is empty. No data loaded.")
             return False
         self.set_loaded_data(data)
-        logger.debug(f"Load from DB: {self}")
+        self.set_no_tag_data(load_fail_datas)
+        logger.debug(f"Succesfully loaded {self}")
         return True
+    
+    def set_data(self, data: set[ImageFileData], load_failed_data: set[str]) -> None:
+        logger.debug(f"Set Data: {self.name} - Loaded: {len(data)}, No Description: {len(load_failed_data)}")
+        db = DB(self.name)
+        if len(data) > 0:
+            self.add_loaded_data(data)
+            db.add_datas(data)
+        if len(load_failed_data) > 0:
+            self.add_no_tag_data(load_failed_data)
+            db.add_no_tags_datas(load_failed_data)
+        logger.debug(f"Succesfully loaded {self}")
     
     # loaded data methods
     
@@ -77,34 +92,39 @@ class DataStorage:
 
     # load failed data methods
     
-    def set_load_failed_data(self, data: set[str]) -> None:
-        if len(self._load_failed_data) > 0:
-            self._load_failed_data.clear()
-        self._load_failed_data = data
-        self._load_failed_data_count = len(data)
+    def set_no_tag_data(self, data: set[str]) -> None:
+        if len(self._no_tag_data) > 0:
+            self._no_tag_data.clear()
+        self._no_tag_data = data
+        self._no_tag_data_count = len(data)
         logger.debug(f"{self}")
 
-    def get_load_failed_data(self) -> set[str]:
-        logger.debug(f"{self.name} - No Description count: {self._load_failed_data_count}")
-        return self._load_failed_data
+    def get_no_tag_data(self) -> set[str]:
+        return self._no_tag_data
     
-    def get_load_failed_data_count(self) -> int:
-        return self._load_failed_data_count
+    def get_no_tag_data_count(self) -> int:
+        return self._no_tag_data_count
     
-    def delete_load_failed_data(self, data: set[str]) -> None:
+    def delete_no_tag_data(self, data: set[str]) -> None:
         if type(data) != set:
-            data = set(data)
-        before_count = self._load_failed_data_count
-        self._load_failed_data.difference_update(data)
-        self._load_failed_data_count = len(self._load_failed_data)
-        logger.debug(f"[{self.name}] Remove load failed data: {before_count} -> {self._load_failed_data_count}")
+            data = set([data])
+        before_count = self._no_tag_data_count
+        self._no_tag_data.difference_update(data)
+        self._no_tag_data_count = len(self._no_tag_data)
+        logger.debug(f"[{self.name}] Remove load failed data: {before_count} -> {self._no_tag_data_count}")
 
-    def clear_load_failed_data(self) -> None:
-        self._load_failed_data.clear()
-        self._load_failed_data_count = 0
+    def add_no_tag_data(self, data: set[str]) -> None:
+        before_count = self._no_tag_data_count
+        self._no_tag_data.update(data)
+        self._no_tag_data_count = len(self._no_tag_data)
+        logger.debug(f"[{self.name}] Add load failed data: {before_count} -> {self._no_tag_data_count}")
+
+    def clear_no_tag_data(self) -> None:
+        self._no_tag_data.clear()
+        self._no_tag_data_count = 0
     
-    def has_load_failed_data(self) -> bool:
-        return self._load_failed_data_count > 0
+    def has_no_tag_data(self) -> bool:
+        return self._no_tag_data_count > 0
     
     # searched data methods TODO: for future use (searched data is not used yet) need refactoring (search_list.py)
         
@@ -131,7 +151,6 @@ class DataStorage:
         except Exception as e:
             logger.error(f"Error deleting searched data: {e}\n{traceback.format_exc()}")
 
-
     def get_searched_data_count(self) -> int:
         return self._searched_data_count
     
@@ -157,24 +176,32 @@ class TaggerDataStorage(DataStorage):
 class SearchDataStorage(DataStorage):
     def __init__(self):
         super().__init__("Search Data Storage")
+    
+    def add_loaded_data(self, data) -> None:
+        before_count = self._loaded_data_count
+        if isinstance(data, Iterable):
+            updated_data = set(data)
+        else:
+            updated_data = set([data])
+        self._loaded_data.update(updated_data)
+        self._loaded_data_count = len(self._loaded_data)
+        logger.debug(f"[{self.name}] Add loaded data: {before_count} -> {self._loaded_data_count}")
+        DB(self.name).add_datas(updated_data)
 
-    def load_from_DB(self) -> bool:
-        logger.info(f"Load Data from Database")
-        data = DB(self.name).get_data()
-        if len(data) == 0:
-            logger.debug(f"Database is empty. No data loaded.")
-            return False
-        super().set_loaded_data(data)
-        logger.debug(f"Load from DB: {self}")
-        return True
-
-    def set_load_failed_data(self, data: set[str]) -> None:
-        super().set_load_failed_data(data)
-        DB(self.name).add_no_tags_datas(data)
+    def set_data(self, data: set[ImageFileData], load_failed_data: set[str]) -> None:
+        logger.debug(f"Set Data: {self.name} - Loaded: {len(data)}, No Description: {len(load_failed_data)}")
+        db = DB(self.name)
+        db_data = db.get_data()
+        self.set_loaded_data(data.union(db_data))
+        if len(data) > 0:
+            db.add_datas(data)
+        if len(load_failed_data) > 0:
+            db.add_no_tags_datas(load_failed_data)
+        logger.debug(f"Succesfully loaded {self}")
 
     def set_loaded_data(self, data: set[ImageFileData]) -> None:
         if type(data) != set:
-            data = set(data)
+            data = set([data])
         db = DB(self.name)
         db_data = db.get_data()
         final_results = data.union(db_data)
@@ -183,15 +210,11 @@ class SearchDataStorage(DataStorage):
         db.add_datas(data)
 
     def on_copy(self, target_list : list[tuple[ImageFileData, str]]) -> None:
-        db = DB(self.name)
         copy_data = [ImageFileDataFactory.create(destination, source.file_tags_text) for source, destination in target_list]
-        db.add_datas(copy_data)
         self.add_loaded_data(copy_data)
 
     def on_move(self, target_list : list[tuple[ImageFileData, str]]) -> None:
-        db = DB(self.name)
         move_data = [ImageFileDataFactory.create(destination, source.file_tags_text) for source, destination in target_list]
-        db.add_datas(move_data)
         self.add_loaded_data(move_data)
 
 class SortDataStorage(DataStorage):
@@ -202,6 +225,9 @@ class SortDataStorage(DataStorage):
         super().set_loaded_data(data)
         DB(self.name).add_datas(data)
         logger.debug(f"Set Loaded Data: {self.name} - {len(data)}")
+
+    def add_loaded_data(self, data) -> None:
+        super().add_loaded_data(data)
 
     def on_copy(self, target_list : list[tuple[ImageFileData, str]]) -> None:
         pass

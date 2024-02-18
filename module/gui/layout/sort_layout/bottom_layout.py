@@ -60,6 +60,8 @@ class BottomLayout(QVBoxLayout):
         sort_signal_manager.on_select_list_saved.connect(self._on_select_list_saved)
         sort_signal_manager.on_search_completed.connect(self._on_search_completed)
 
+        GUISignalManager().on_tag_added.connect(self._on_tag_added)
+
     def __on_option_button_clicked(self):
         DialogFactory(self._mainwindow).create_setting_dialog()
 
@@ -68,11 +70,12 @@ class BottomLayout(QVBoxLayout):
         self.info_console.setText(f"<b>Tags</b>: {highlight_text}")
 
     def _on_select_list_saved(self, mode: SaveModeEnum):
+        count = self._datastorage.get_loaded_data_count()
         if mode == SaveModeEnum.COPY:
-            self.info_console.setText(f"Successfully copied {self._datastorage.get_loaded_data_count()} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
+            self.info_console.setText(f"Successfully copied {count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
         elif mode == SaveModeEnum.MOVE:
-            self.info_console.setText(f"Successfully moved {self._datastorage.get_loaded_data_count()} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
-            self._update_count_label()
+            self.info_console.setText(f"Successfully moved {count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
+            self._update_count_label(count)
 
     def _on_load_complete(self):
         count = self._datastorage.get_loaded_data_count()
@@ -81,7 +84,8 @@ class BottomLayout(QVBoxLayout):
             return
         self.info_console.setText(f"Successfully loaded {count} images.")
         self.load_count_label.setText(f"Loaded {count}")
-        GUISignalManager().emit_on_load_complete()
+        load_failed_data = self._datastorage.get_no_tag_data()
+        GUISignalManager().emit_on_load_complete(load_failed_data)
 
     def _update_count_label(self, count):
         self.load_count_label.setText(f"Loaded {count}")
@@ -91,3 +95,9 @@ class BottomLayout(QVBoxLayout):
 
     def _on_search_completed(self, _, count):
         self.info_console.setText(f"Search Completed. {count} images found.")
+
+    def _on_tag_added(self, data, count):
+        self._datastorage.add_loaded_data(data)
+        self._datastorage.clear_no_tag_data()
+        self._update_count_label(self._datastorage.get_loaded_data_count())
+        self.info_console.setText(f"Successfully added tags to {count} images.")

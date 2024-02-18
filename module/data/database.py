@@ -70,10 +70,13 @@ class DB:
         self.cursor.execute(NO_TAGS_IMAGE_FILE_TABLE)
         self.conn.commit()
 
-    def get_db_paths(self) -> set[str]:
-        logger.debug("Get Paths from DB")
+    def get_all_paths_from_image_table(self) -> set[str]:
         self.cursor.execute(SELECT_PATH)
         data = self.cursor.fetchall()
+        if len(data) == 0:
+            logger.debug(f"No Data in DB: {self.accesser}")
+            return set()
+        logger.debug(f"Get All Paths from DB: {self.accesser} - {len(data)}")
         return set([path for path, in data])
     
     def get_all_rows(self) -> list:
@@ -83,7 +86,7 @@ class DB:
     # Image Data Methods
 
     def get_data(self) -> set[ImageFileData]:
-        logger.debug("Get Data from DB")
+        logger.debug(f"Get Data from DB: {self.accesser}")
         self._verify_check_db()
         self.cursor.execute(SELECT_IMAGE_DATA)
         data = self.cursor.fetchall()
@@ -99,40 +102,38 @@ class DB:
     def add_datas(self, datas: Iterable) -> None:
         if isinstance(datas, Iterable):
             before_count = self._get_image_count()
-            logger.debug(f"Add Datas: {len(datas)}")
-            for data in datas:
-                logger.debug(f"Add Data: {data.file_path}")
+            logger.debug(f"Try Add Datas: {len(datas)} from {self.accesser}")
             self.cursor.executemany(INSERT_IMAGE_DATA, [(data.file_path, data.file_tags_text) for data in datas])
             self.conn.commit()
-            logger.debug(f"Database Updated: {before_count} -> {self._get_image_count()} images")
+            logger.debug(f"Database Updated: {before_count} -> {self._get_image_count()} images from {self.accesser}")
         else:
             logger.error(f"Add Datas: Not Iterable Type: '{type(datas)}'")
 
     def delete_data(self, data: ImageFileData) -> None:
-        logger.debug(f"Delete Data: {data.file_path}")
+        logger.debug(f"Delete Data: {data.file_path} from {self.accesser}")
         self.cursor.execute(DELETE_USING_PATH, (data.file_path,))
         self.conn.commit()
-        logger.debug(f"Database Updated: {self._get_image_count()} images")
+        logger.debug(f"Database Updated: {self._get_image_count()} images from {self.accesser}")
 
     def delete_datas(self, datas: Iterable) -> None:
         if isinstance(datas, Iterable):
-            logger.debug(f"Delete Datas: {len(datas)}")
+            logger.debug(f"Delete Datas: {len(datas)} from {self.accesser}")
             self.cursor.executemany(DELETE_USING_PATH, [(data.file_path,) for data in datas])
             self.conn.commit()
-            logger.debug(f"Database Updated: {self._get_image_count()} images")
+            logger.debug(f"Database Updated: {self._get_image_count()} images from {self.accesser}")
         else:
             logger.error(f"Delete Datas: Not Iterable Type: '{type(datas)}'")
 
     # No Tags Data Methods
 
     def add_no_tags_data(self, path: str) -> None:
-        logger.debug(f"Add No Tags Data: {path}")
+        logger.debug(f"Add No Tags Data: {path} from {self.accesser}")
         self.cursor.execute(INSERT_NO_TAGS_IMAGE_DATA, (path,))
         self.conn.commit()
 
     def add_no_tags_datas(self, paths: Iterable) -> None:
         if isinstance(paths, Iterable):
-            logger.debug(f"Add No Tags Datas: {len(paths)}")
+            logger.debug(f"Add No Tags Datas: {len(paths)} from {self.accesser}")
             self.cursor.executemany(INSERT_NO_TAGS_IMAGE_DATA, [(path,) for path in paths])
             self.conn.commit()
         else:
@@ -145,13 +146,13 @@ class DB:
 
     def delete_no_tags_datas(self, paths: Iterable) -> None:
         if isinstance(paths, Iterable):
-            logger.debug(f"Delete No Tags Datas: {len(paths)}")
+            logger.debug(f"Delete No Tags Datas: {len(paths)} from {self.accesser}")
             self.cursor.executemany('DELETE FROM no_tags_images WHERE path=?', [(path,) for path in paths])
             self.conn.commit()
         else:
             logger.error(f"Delete No Tags Datas: Not Iterable Type: '{type(paths)}'")
 
-    def get_no_tags_data(self) -> set[str]:
+    def get_no_tags_datas(self) -> set[str]:
         logger.debug("Get No Tags Data from DB")
         self.cursor.execute('SELECT path FROM no_tags_images')
         data = self.cursor.fetchall()

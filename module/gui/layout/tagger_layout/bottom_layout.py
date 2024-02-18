@@ -1,10 +1,9 @@
 from PyQt5.QtWidgets import QVBoxLayout
 
 class BottomLayout(QVBoxLayout):
-    def __init__(self, mainwindow, datastorage):
+    def __init__(self, mainwindow):
         super().__init__()
         self._mainwindow = mainwindow
-        self._datastorage = datastorage
 
         self._initUI()
         self._initsignal()

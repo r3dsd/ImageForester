@@ -5,9 +5,7 @@ from ...data import TaggerDataStorage
 class TaggerTab(QWidget):
     def __init__(self, mainwindow):
         super().__init__(mainwindow)
-
-        self.datastorage = TaggerDataStorage()
-
-        self._layout = TaggerLayout(mainwindow, self.datastorage)
+        
+        self._layout = TaggerLayout(mainwindow)
 
         self.setLayout(self._layout)
