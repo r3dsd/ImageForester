@@ -69,7 +69,7 @@ class PathSelector(QWidget):
             self._image_load()
 
     def _image_load(self):
-        self.worker = ExtendedWorker(DataLoader.load_using_multi, self.use_DB, self.datastorage)
+        self.worker = ExtendedWorker(DataLoader.load_using_multi, self.datastorage)
         self.worker.finished.connect(self._on_load_complete)
         self.worker.start()
 

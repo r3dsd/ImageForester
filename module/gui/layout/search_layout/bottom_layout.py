@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QSizePolicy
 from PyQt5.QtCore import Qt
 
-from ....data import DataStorage, DataLoader, ImageFileData
+from ....data import DataStorage, ImageFileData
 from ...factory.PopupFactory import PopupFactory
 from ...factory.DialogFactory import DialogFactory
 from ....r3util.r3lib import HighlightingText
@@ -9,6 +9,7 @@ from ....user_setting import SaveModeEnum
 from ....config import FILEMANAGER_CONFIG
 from ...guisignalmanager import GUISearchSignalManager
 from ...widgets.path_selector import PathSelector
+from ....data import DB
 
 from ....logger import get_logger
 
@@ -74,7 +75,12 @@ class BottomLayout(QVBoxLayout):
 
     def __on_database_connect_button_clicked(self):
         self._on_database_load_started()
-        DataLoader().load_from_DB(self._datastorage)
+        result = self._datastorage.load_from_DB()
+        if not result:
+            self.path_selector.set_path_label("Succesfully connected to the database.")
+            PopupFactory.show_warning_message(self._mainwindow, "Database is empty.")
+            self.info_console.setText("Database is empty. you can load another way. (e.g. Load from folder)")
+            return
         self._on_database_load_finished()
 
     def _on_item_selection_updated(self, image_data: ImageFileData):
@@ -83,10 +89,12 @@ class BottomLayout(QVBoxLayout):
 
     def _on_select_list_saved(self, mode: SaveModeEnum):
         if mode == SaveModeEnum.COPY:
-            self.info_console.setText(f"Successfully copied {self._datastorage.get_loaded_data_count()} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
+            count = self._datastorage.get_loaded_data_count()
+            self.info_console.setText(f"Successfully copied {count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
+            self._update_count_label(count)
         elif mode == SaveModeEnum.MOVE:
-            self.info_console.setText(f"Successfully moved {self._datastorage.get_loaded_data_count()} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
-            self._update_count_label()
+            self.info_console.setText(f"Successfully moved {count} images to the {FILEMANAGER_CONFIG['FINAL_SAVE_FOLDER_PATH']}")
+            self._update_count_label(count)
 
     def _on_load_complete(self):
         count = self._datastorage.get_loaded_data_count()
@@ -99,7 +107,7 @@ class BottomLayout(QVBoxLayout):
     def _update_count_label(self, count):
         self.load_count_label.setText(f"Loaded {count}")
 
-    def _on_deleted_data(self, count):
+    def _on_deleted_data(self, count : int): # count is deleted count
         self.load_count_label.setText(f"Loaded {self._datastorage.get_loaded_data_count()}")
 
     def _on_database_load_started(self):
@@ -108,11 +116,6 @@ class BottomLayout(QVBoxLayout):
 
     def _on_database_load_finished(self):
         count = self._datastorage.get_loaded_data_count()
-        if count == 0:
-            self.path_selector.set_path_label("Succesfully connected to the database.")
-            PopupFactory.show_warning_message(self._mainwindow, "Database is empty.")
-            self.info_console.setText("Database is empty. you can load another way. (e.g. Load from folder)")
-            return
         self.path_selector.set_path_label(f"Succesfully connected to the database. Loaded {count} images.")
         self.info_console.setText(f"Successfully loaded {count} images")
         self.load_count_label.setText(f"Loaded {count}")

@@ -25,7 +25,7 @@ class App:
         self._initUI()
         if UserSetting.get('AUTO_DATABASE'):
             GUISearchSignalManager().emit_on_auto_database_load_started()
-            worker = ExtendedWorker(DataLoader.load_from_DB)
+            worker = ExtendedWorker(self.load_database)
             worker.finished.connect(self.emit_auto_database_load_finished)
             worker.start()
         sys.exit(self.App.exec_())
@@ -51,12 +51,19 @@ class App:
         _central_widget = QTabWidget()
         self._mainwindow.setCentralWidget(_central_widget)
 
-        _central_widget.addTab(SearchTab(self._mainwindow), "Search")
-        _central_widget.addTab(SortTab(self._mainwindow), "Sort")
-        _central_widget.addTab(TaggerTab(self._mainwindow), "Tagger")
+        self.search_tab = SearchTab(self._mainwindow)
+        self.sort_tab = SortTab(self._mainwindow)
+        self.tagger_tab = TaggerTab(self._mainwindow)
+
+        _central_widget.addTab(self.search_tab, "Search")
+        _central_widget.addTab(self.sort_tab, "Sort")
+        _central_widget.addTab(self.tagger_tab, "Tagger")
 
     def on_crashed_program(self, error_log: str):
         DialogFactory(self._mainwindow).create_crash_report_dialog(error_log=error_log).exec_()
+
+    def load_database(self):
+        self.search_tab.datastorage.load_from_DB()
 
     def emit_auto_database_load_finished(self):
         GUISearchSignalManager().emit_on_auto_database_load_finished()

@@ -22,9 +22,7 @@ NO_TAGS_IMAGE_FILE_TABLE = '''
     )
 '''
 
-SELECT_ALL = '''
-    SELECT * FROM images
-'''
+SELECT_ALL = '''SELECT * FROM images'''
 
 SELECT_PATH = '''
     SELECT path FROM images
@@ -50,13 +48,22 @@ INSERT_IMAGE_DATA = '''
     INSERT OR IGNORE INTO images (path, tags) VALUES (?, ?)
 '''
 
+INSERT_NO_TAGS_IMAGE_DATA = '''
+    INSERT OR IGNORE INTO no_tags_images (path) VALUES (?)
+'''
+
 class DB:
-    def __init__(self, db_path='database.db'):
+    def __init__(self, accesser="Default", db_path='database.db'):
         self.db_path = db_path
+        self.accesser = accesser
         self.conn = sqlite3.connect(db_path)
-        logger.debug(f"Succesfully connected to {db_path}")
+        logger.debug(f"Succesfully connected to {db_path} as {accesser}")
         self.cursor = self.conn.cursor()
         self._initialize_database()
+
+    def __del__(self):
+        self.conn.close()
+        logger.debug(f"Database Connection Closed: {self.db_path} as {self.accesser}")
 
     def _initialize_database(self):
         self.cursor.execute(IMAGE_FILE_TABLE)
@@ -68,6 +75,12 @@ class DB:
         self.cursor.execute(SELECT_PATH)
         data = self.cursor.fetchall()
         return set([path for path, in data])
+    
+    def get_all_rows(self) -> list:
+        self.cursor.execute(SELECT_ALL)
+        return self.cursor.fetchall()
+    
+    # Image Data Methods
 
     def get_data(self) -> set[ImageFileData]:
         logger.debug("Get Data from DB")
@@ -85,10 +98,13 @@ class DB:
     
     def add_datas(self, datas: Iterable) -> None:
         if isinstance(datas, Iterable):
+            before_count = self._get_image_count()
             logger.debug(f"Add Datas: {len(datas)}")
+            for data in datas:
+                logger.debug(f"Add Data: {data.file_path}")
             self.cursor.executemany(INSERT_IMAGE_DATA, [(data.file_path, data.file_tags_text) for data in datas])
             self.conn.commit()
-            logger.debug(f"Database Updated: {self._get_image_count()} images")
+            logger.debug(f"Database Updated: {before_count} -> {self._get_image_count()} images")
         else:
             logger.error(f"Add Datas: Not Iterable Type: '{type(datas)}'")
 
@@ -107,15 +123,17 @@ class DB:
         else:
             logger.error(f"Delete Datas: Not Iterable Type: '{type(datas)}'")
 
+    # No Tags Data Methods
+
     def add_no_tags_data(self, path: str) -> None:
         logger.debug(f"Add No Tags Data: {path}")
-        self.cursor.execute('INSERT INTO no_tags_images (path) VALUES (?)', (path,))
+        self.cursor.execute(INSERT_NO_TAGS_IMAGE_DATA, (path,))
         self.conn.commit()
 
     def add_no_tags_datas(self, paths: Iterable) -> None:
         if isinstance(paths, Iterable):
             logger.debug(f"Add No Tags Datas: {len(paths)}")
-            self.cursor.executemany('INSERT INTO no_tags_images (path) VALUES (?)', [(path,) for path in paths])
+            self.cursor.executemany(INSERT_NO_TAGS_IMAGE_DATA, [(path,) for path in paths])
             self.conn.commit()
         else:
             logger.error(f"Add No Tags Datas: Not Iterable Type: '{type(paths)}'")
@@ -138,6 +156,8 @@ class DB:
         self.cursor.execute('SELECT path FROM no_tags_images')
         data = self.cursor.fetchall()
         return set([path for path, in data])
+    
+    # Util Methods
 
     def _verify_check_db(self):
         logger.debug("Verify Check DB Start")

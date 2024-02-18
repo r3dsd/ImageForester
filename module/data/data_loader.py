@@ -3,14 +3,14 @@ import os
 import struct
 import concurrent.futures
 from PIL import Image
-from . import DataStorage
+from .data_storage import DataStorage
 from .stealth_pnginfo import read_info_from_image_stealth
 from ..constants import IMAGE_FORMATS
 from ..user_setting import UserSetting
 from .imagefiledata import ImageFileData
-from .database import DB
 from ..logger import get_logger
 from ..r3util.r3path import process_path
+from ..data.database import DB
 
 logger = get_logger(__name__)
 
@@ -18,15 +18,7 @@ class DataLoader:
     _loadable_files: set[str] = set()
 
     @classmethod
-    def load_from_DB(cls, storage : DataStorage) -> None:
-        logger.info("Load Data from Database")
-        data = DB().get_data()
-        storage.set_loaded_data(data)
-
-    @classmethod
-    def load_using_multi(cls, 
-                        use_DB: bool = False, 
-                        datastorage : DataStorage = None) -> None:
+    def load_using_multi(cls, datastorage : DataStorage = None) -> None:
         """
         Load image from _loadable_file_list
         """
@@ -40,7 +32,7 @@ class DataLoader:
         files_to_process = list(cls._loadable_files)
 
         max_workers = 4
-        logger.info(f"{len(cls._loadable_files)} Images... Using Multi Thread (max_workers=4, Use_DB={use_DB})")
+        logger.info(f"Found {len(cls._loadable_files)} Images. [thread={max_workers}] [DataStorage={datastorage}]")
         results: set[ImageFileData] = set()
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             for result in executor.map(process_file, files_to_process):
@@ -49,17 +41,9 @@ class DataLoader:
         result_path_list: list[str] = [result.file_path for result in results]
         load_failed_data = set(files_to_process) - set(result_path_list)
         logger.info(f"Load Complete. {len(results)} Images Loaded. {len(load_failed_data)} Images Failed to Load")
+
         datastorage.set_load_failed_data(load_failed_data)
-        # Update Database
-        DB().add_datas(results)
-        final_results = results
-        
-        if use_DB:
-            logger.debug("Using DB... Adding failed data to DB")
-            DB().add_no_tags_datas(load_failed_data)
-            db_data = DB().get_data()
-            final_results = final_results.union(db_data)
-        datastorage.set_loaded_data(final_results)
+        datastorage.set_loaded_data(results)
         cls._loadable_files.clear()
 
 
@@ -76,7 +60,7 @@ class DataLoader:
         # If using database, remove files already present in database
         if use_DB:
             logger.debug("Using DB... Removing already exist in DB")
-            existing_in_db = DB().get_db_paths()
+            existing_in_db = DB("DataLoader").get_db_paths()
             cls._loadable_files.difference_update(existing_in_db)
 
         count = len(cls._loadable_files)

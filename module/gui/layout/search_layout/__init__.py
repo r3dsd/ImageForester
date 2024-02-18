@@ -4,14 +4,14 @@ from .bottom_layout import BottomLayout
 
 from PyQt5.QtWidgets import QVBoxLayout
 
-from ....data import DataStorage
+from ....data import SearchDataStorage
 
 class SearchLayout(QVBoxLayout):
-    def __init__(self, mainwindow):
+    def __init__(self, mainwindow, datastorage: SearchDataStorage):
         super().__init__()
         self.setContentsMargins(5, 5, 5, 5)
 
-        self.datastorage = DataStorage("Search_Tab_DataStorage")
+        self.datastorage = datastorage
 
         top_layout = TopLayout(mainwindow, self.datastorage)
         middle_layout = MiddleLayout(mainwindow, self.datastorage)

@@ -1,4 +1,4 @@
-from .imagefiledata import ImageFileData
+from .imagefiledata import ImageFileData, ImageFileDataFactory
 from .database import DB
 
 from ..logger import get_logger
@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 
 class DataStorage:
     def __init__(self, name: str = "DataStorage"):
-        self.name = name
+        self.name = name # name is DB Accesser
         logger.debug(f"Create DataStorage: {name}")
         self._loaded_data = set()
         self._loaded_data_count = 0
@@ -30,6 +30,16 @@ class DataStorage:
         self._searched_data_count = 0
         self._search_keywords.clear()
         logger.debug(f"{self.name} - Data cleared")
+
+    def load_from_DB(self) -> bool:
+        logger.info(f"Load Data from Database")
+        data = DB(self.name).get_data()
+        if len(data) == 0:
+            logger.debug(f"Database is empty. No data loaded.")
+            return False
+        self.set_loaded_data(data)
+        logger.debug(f"Load from DB: {self}")
+        return True
     
     # loaded data methods
     
@@ -38,7 +48,7 @@ class DataStorage:
             self._loaded_data.clear()
         self._loaded_data = data
         self._loaded_data_count = len(data)
-        logger.debug(f"{self}")
+        logger.debug(f"Set Loaded Data: {self}")
 
     def get_loaded_data(self) -> set[ImageFileData]:
         return self._loaded_data
@@ -47,27 +57,21 @@ class DataStorage:
         return self._loaded_data_count
     
     def delete_loaded_data(self, data: set[ImageFileData]) -> None:
-        try:
-            if type(data) != set:
-                data = set(data)
-            DB().delete_datas(data)
-            before_count = self._loaded_data_count
-            self._loaded_data.difference_update(data)
-            self._loaded_data_count = len(self._loaded_data)
-            logger.debug(f"[{self.name}] Delete loaded data: {before_count} -> {self._loaded_data_count}")
-        except Exception as e:
-            logger.error(f"Error: {e}\n{traceback.format_exc()}")
+        if type(data) != set:
+            data = set(data)
+        before_count = self._loaded_data_count
+        self._loaded_data.difference_update(data)
+        self._loaded_data_count = len(self._loaded_data)
+        DB(self.name).delete_datas(data)
+        logger.debug(f"[{self.name}] Delete loaded data: {before_count} -> {self._loaded_data_count}")
 
     def add_loaded_data(self, data) -> None:
         before_count = self._loaded_data_count
-        db = DB()
         if isinstance(data, ImageFileData):
             self._loaded_data.add(data)
-            db.add_data(data)
         else:
             set_data = data if isinstance(data, set) else set(data)
             self._loaded_data.update(set_data)
-            db.add_datas(set_data)
         self._loaded_data_count = len(self._loaded_data)
         logger.debug(f"[{self.name}] Add loaded data: {before_count} -> {self._loaded_data_count}")
 
@@ -102,7 +106,7 @@ class DataStorage:
     def has_load_failed_data(self) -> bool:
         return self._load_failed_data_count > 0
     
-    # searched data methods
+    # searched data methods TODO: for future use (searched data is not used yet) need refactoring (search_list.py)
         
     def set_searched_data(self, data: set[str]) -> None:
         if len(self._searched_data) > 0:
@@ -140,11 +144,68 @@ class DataStorage:
     def get_search_keywords(self) -> list[str]:
         return self._search_keywords
     
+    def on_copy(self, target_list : list[tuple[ImageFileData, str]]) -> None:
+        pass
+
+    def on_move(self, target_list : list[tuple[ImageFileData, str]]) -> None:
+        pass
+    
 class TaggerDataStorage(DataStorage):
-    pass
+    def __init__(self):
+        super().__init__("Tagger Data Storage")
 
 class SearchDataStorage(DataStorage):
-    pass
+    def __init__(self):
+        super().__init__("Search Data Storage")
+
+    def load_from_DB(self) -> bool:
+        logger.info(f"Load Data from Database")
+        data = DB(self.name).get_data()
+        if len(data) == 0:
+            logger.debug(f"Database is empty. No data loaded.")
+            return False
+        super().set_loaded_data(data)
+        logger.debug(f"Load from DB: {self}")
+        return True
+
+    def set_load_failed_data(self, data: set[str]) -> None:
+        super().set_load_failed_data(data)
+        DB(self.name).add_no_tags_datas(data)
+
+    def set_loaded_data(self, data: set[ImageFileData]) -> None:
+        if type(data) != set:
+            data = set(data)
+        db = DB(self.name)
+        db_data = db.get_data()
+        final_results = data.union(db_data)
+        super().set_loaded_data(final_results)
+        logger.debug(f"Set Loaded Data: {self.name} - {len(final_results)}")
+        db.add_datas(data)
+
+    def on_copy(self, target_list : list[tuple[ImageFileData, str]]) -> None:
+        db = DB(self.name)
+        copy_data = [ImageFileDataFactory.create(destination, source.file_tags_text) for source, destination in target_list]
+        db.add_datas(copy_data)
+        self.add_loaded_data(copy_data)
+
+    def on_move(self, target_list : list[tuple[ImageFileData, str]]) -> None:
+        db = DB(self.name)
+        move_data = [ImageFileDataFactory.create(destination, source.file_tags_text) for source, destination in target_list]
+        db.add_datas(move_data)
+        self.add_loaded_data(move_data)
 
 class SortDataStorage(DataStorage):
-    pass
+    def __init__(self):
+        super().__init__("Sort Data Storage")
+
+    def set_loaded_data(self, data: set[ImageFileData]) -> None:
+        super().set_loaded_data(data)
+        DB(self.name).add_datas(data)
+        logger.debug(f"Set Loaded Data: {self.name} - {len(data)}")
+
+    def on_copy(self, target_list : list[tuple[ImageFileData, str]]) -> None:
+        pass
+    
+    def on_move(self, target_list : list[tuple[ImageFileData, str]]) -> None:
+        db = DB(self.name)
+        db.delete_datas(target_list)

@@ -52,7 +52,7 @@ class SelectList(ConnectableList):
         FileManager.image_files_to_save_folder(self.datastorage, target_list)
         self.clear()
         self.save_button.setDisabled(True)
-        self.select_count_label.setText(f"Select Count: 0")
+        self.count_label.setText(f"Select Count: 0")
         self.on_select_list_saved.emit(UserSetting.get('SAVE_MODE'))
         if not UserSetting.check('DISABLE_OPEN_FOLDER_POPUP'):
             DialogFactory(self.parent()).create_folder_open_dialog(count=len(target_list)).exec_()
